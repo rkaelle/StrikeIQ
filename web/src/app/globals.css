@@ -1,0 +1,210 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+:root {
+  --background: #0a0a0a;
+  --surface: #141414;
+  --surface-light: #1e1e1e;
+  --border: #333333;
+  --primary: #00d4aa;
+  --bullish: #00d4aa;
+  --bearish: #ff6b6b;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+  background-color: var(--background);
+  color: white;
+  font-family: 'Inter', sans-serif;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #444;
+}
+
+/* Animations */
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px var(--primary);
+  }
+  50% {
+    box-shadow: 0 0 20px var(--primary), 0 0 30px var(--primary);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes slide-in-up {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+.animate-slide-in-right {
+  animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-slide-in-up {
+  animation: slide-in-up 0.3s ease-out;
+}
+
+/* Signal card styles */
+.signal-card {
+  @apply bg-surface rounded-lg border border-border p-4 transition-all duration-200;
+}
+
+.signal-card:hover {
+  @apply border-primary bg-surface-light;
+}
+
+.signal-card-bullish {
+  @apply border-l-4 border-l-bullish;
+}
+
+.signal-card-bearish {
+  @apply border-l-4 border-l-bearish;
+}
+
+/* Confidence bar */
+.confidence-bar {
+  @apply h-2 rounded-full bg-surface-lighter overflow-hidden;
+}
+
+.confidence-fill {
+  @apply h-full rounded-full transition-all duration-500;
+}
+
+/* Risk level indicators */
+.risk-indicator {
+  @apply px-2 py-1 rounded text-xs font-medium;
+}
+
+.risk-low {
+  @apply bg-risk-low/20 text-risk-low;
+}
+
+.risk-medium {
+  @apply bg-risk-medium/20 text-risk-medium;
+}
+
+.risk-high {
+  @apply bg-risk-high/20 text-risk-high;
+}
+
+.risk-extreme {
+  @apply bg-risk-extreme/20 text-risk-extreme;
+}
+
+/* Button styles */
+.btn {
+  @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+}
+
+.btn-primary {
+  @apply bg-primary text-black hover:bg-primary-dark;
+}
+
+.btn-secondary {
+  @apply bg-surface-light border border-border hover:bg-surface-lighter;
+}
+
+.btn-ghost {
+  @apply hover:bg-surface-light;
+}
+
+.btn-bullish {
+  @apply bg-bullish/20 text-bullish hover:bg-bullish/30;
+}
+
+.btn-bearish {
+  @apply bg-bearish/20 text-bearish hover:bg-bearish/30;
+}
+
+/* Chart container */
+.chart-container {
+  @apply bg-surface rounded-lg border border-border p-4;
+}
+
+/* Stats grid */
+.stats-grid {
+  @apply grid grid-cols-2 md:grid-cols-4 gap-4;
+}
+
+.stat-card {
+  @apply bg-surface-light rounded-lg p-4;
+}
+
+.stat-value {
+  @apply text-2xl font-bold;
+}
+
+.stat-label {
+  @apply text-sm text-gray-400;
+}
+
+/* Navigation */
+.nav-link {
+  @apply px-4 py-2 rounded-lg text-gray-400 hover:text-white hover:bg-surface-light transition-colors;
+}
+
+.nav-link-active {
+  @apply text-primary bg-primary/10;
+}
+
+/* Input styles */
+.input {
+  @apply bg-surface-light border border-border rounded-lg px-4 py-2 text-white placeholder-gray-500 focus:outline-none focus:border-primary;
+}
+
+/* Modal backdrop */
+.modal-backdrop {
+  @apply fixed inset-0 bg-black/70 flex items-center justify-center z-50;
+}
+
+.modal-content {
+  @apply bg-surface rounded-xl border border-border p-6 max-w-lg w-full mx-4 animate-slide-in-up;
+}

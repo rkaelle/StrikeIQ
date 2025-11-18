@@ -1,0 +1,228 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  password      String
+  name          String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  watchlist     Watchlist[]
+  trades        UserTrade[]
+  settings      UserSettings?
+}
+
+model UserSettings {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  user                  User     @relation(fields: [userId], references: [id])
+  riskTolerance         String   @default("moderate") // conservative, moderate, aggressive
+  maxPositionSize       Float    @default(1000)
+  preferredExpiry       String   @default("weekly") // 0dte, weekly, monthly
+  notificationsEnabled  Boolean  @default(true)
+  darkMode              Boolean  @default(true)
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model Signal {
+  id              String   @id @default(cuid())
+  ticker          String
+  signalType      String   // 0DTE, WEEKLY, EARNINGS, DARK_POOL, NEWS
+  direction       String   // CALL, PUT
+  strikePrice     Float
+  expirationDate  DateTime
+  entryPrice      Float
+  stopLoss        Float
+  targetPrice     Float
+  confidence      Float    // 0-100 percentage
+
+  // Signal factors
+  flowScore       Float    // Institutional flow score
+  volumeScore     Float    // Volume analysis score
+  oiScore         Float    // Open interest score
+  technicalScore  Float    // Technical analysis score
+  sentimentScore  Float    // News/sentiment score
+  volatilityScore Float    // VIX/IV analysis
+
+  // Risk metrics
+  riskLevel       String   // LOW, MEDIUM, HIGH, EXTREME
+  maxLoss         Float
+  potentialGain   Float
+  riskReward      Float
+
+  // Metadata
+  reasoning       String   @db.Text
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  expiresAt       DateTime
+  isActive        Boolean  @default(true)
+
+  // Relations
+  watchlistItems  Watchlist[]
+  trades          UserTrade[]
+  accuracy        SignalAccuracy?
+}
+
+model SignalAccuracy {
+  id              String   @id @default(cuid())
+  signalId        String   @unique
+  signal          Signal   @relation(fields: [signalId], references: [id])
+
+  outcome         String   // WIN, LOSS, BREAKEVEN, PENDING
+  actualReturn    Float?
+  hitTarget       Boolean?
+  hitStopLoss     Boolean?
+  maxDrawdown     Float?
+  peakGain        Float?
+
+  closedAt        DateTime?
+  closingPrice    Float?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Watchlist {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  signalId  String
+  signal    Signal   @relation(fields: [signalId], references: [id])
+  notes     String?
+  alertSet  Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@unique([userId, signalId])
+}
+
+model UserTrade {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])
+  signalId        String?
+  signal          Signal?  @relation(fields: [signalId], references: [id])
+
+  ticker          String
+  direction       String
+  strikePrice     Float
+  expirationDate  DateTime
+  entryPrice      Float
+  exitPrice       Float?
+  quantity        Int
+
+  status          String   @default("OPEN") // OPEN, CLOSED
+  outcome         String?  // WIN, LOSS, BREAKEVEN
+  pnl             Float?
+  pnlPercentage   Float?
+
+  enteredAt       DateTime @default(now())
+  exitedAt        DateTime?
+  notes           String?
+}
+
+model MarketData {
+  id            String   @id @default(cuid())
+  ticker        String
+  timestamp     DateTime
+
+  // Price data
+  open          Float
+  high          Float
+  low           Float
+  close         Float
+  volume        BigInt
+
+  // Options specific
+  impliedVolatility Float?
+  historicalVolatility Float?
+
+  // Indicators
+  vwap          Float?
+  rsi           Float?
+  macd          Float?
+
+  createdAt     DateTime @default(now())
+
+  @@unique([ticker, timestamp])
+  @@index([ticker])
+  @@index([timestamp])
+}
+
+model OptionsFlow {
+  id              String   @id @default(cuid())
+  ticker          String
+  timestamp       DateTime
+
+  strikePrice     Float
+  expirationDate  DateTime
+  optionType      String   // CALL, PUT
+
+  volume          Int
+  openInterest    Int
+  premium         Float
+
+  // Flow analysis
+  isUnusual       Boolean  @default(false)
+  isSweep         Boolean  @default(false)
+  isBlock         Boolean  @default(false)
+  sentiment       String   // BULLISH, BEARISH, NEUTRAL
+
+  createdAt       DateTime @default(now())
+
+  @@index([ticker])
+  @@index([timestamp])
+}
+
+model NewsArticle {
+  id            String   @id @default(cuid())
+  ticker        String?
+  title         String
+  summary       String   @db.Text
+  source        String
+  url           String
+  publishedAt   DateTime
+
+  sentiment     String   // POSITIVE, NEGATIVE, NEUTRAL
+  sentimentScore Float   // -1 to 1
+  relevance     Float    // 0 to 1
+
+  createdAt     DateTime @default(now())
+
+  @@index([ticker])
+  @@index([publishedAt])
+}
+
+model SystemMetrics {
+  id              String   @id @default(cuid())
+  date            DateTime @unique
+
+  // Overall performance
+  totalSignals    Int
+  winningSignals  Int
+  losingSignals   Int
+  winRate         Float
+  avgReturn       Float
+
+  // By signal type
+  zeroDteWinRate  Float?
+  weeklyWinRate   Float?
+  earningsWinRate Float?
+  darkPoolWinRate Float?
+  newsWinRate     Float?
+
+  // Risk metrics
+  avgRiskReward   Float
+  maxDrawdown     Float
+  sharpeRatio     Float?
+
+  createdAt       DateTime @default(now())
+}
