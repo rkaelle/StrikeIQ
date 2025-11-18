@@ -84,9 +84,9 @@ struct WatchlistItemView: View {
 
             // Metrics
             HStack(spacing: 6) {
-                WatchlistMetric(label: "Entry", value: "$\(signal.entryPrice, specifier: "%.2f")")
-                WatchlistMetric(label: "Stop", value: "$\(signal.stopLoss, specifier: "%.2f")", color: Color("Bearish"))
-                WatchlistMetric(label: "Target", value: "$\(signal.targetPrice, specifier: "%.2f")", color: Color("Bullish"))
+                WatchlistMetric(label: "Entry", value: String(format: "$%.2f", signal.entryPrice))
+                WatchlistMetric(label: "Stop", value: String(format: "$%.2f", signal.stopLoss), color: Color("Bearish"))
+                WatchlistMetric(label: "Target", value: String(format: "$%.2f", signal.targetPrice), color: Color("Bullish"))
             }
 
             // Actions

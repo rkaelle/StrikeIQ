@@ -72,10 +72,10 @@ struct SignalCardView: View {
 
                 // Key Metrics
                 HStack(spacing: 8) {
-                    MetricBox(label: "Entry", value: "$\(signal.entryPrice, specifier: "%.2f")")
-                    MetricBox(label: "Stop", value: "$\(signal.stopLoss, specifier: "%.2f")", color: Color("Bearish"))
-                    MetricBox(label: "Target", value: "$\(signal.targetPrice, specifier: "%.2f")", color: Color("Bullish"))
-                    MetricBox(label: "R:R", value: "\(signal.riskReward, specifier: "%.1f")")
+                    MetricBox(label: "Entry", value: String(format: "$%.2f", signal.entryPrice))
+                    MetricBox(label: "Stop", value: String(format: "$%.2f", signal.stopLoss), color: Color("Bearish"))
+                    MetricBox(label: "Target", value: String(format: "$%.2f", signal.targetPrice), color: Color("Bullish"))
+                    MetricBox(label: "R:R", value: String(format: "%.1f", signal.riskReward))
                 }
 
                 // Risk Level
@@ -261,7 +261,7 @@ struct ConfidenceBar: View {
     let value: Double
 
     private var color: Color {
-        if value >= 75 { return Color("Primary") }
+        if value >= 75 { return Color("AppPrimary") }
         if value >= 60 { return .yellow }
         return .orange
     }
@@ -307,7 +307,7 @@ struct ScoreBar: View {
                         .cornerRadius(1.5)
 
                     Rectangle()
-                        .fill(Color("Primary"))
+                        .fill(Color("AppPrimary"))
                         .frame(width: geometry.size.width * CGFloat(value / 100), height: 3)
                         .cornerRadius(1.5)
                 }

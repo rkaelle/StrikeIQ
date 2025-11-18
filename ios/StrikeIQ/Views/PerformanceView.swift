@@ -25,7 +25,7 @@ struct PerformanceView: View {
                                     .fontWeight(.medium)
                                     .padding(.horizontal, 12)
                                     .padding(.vertical, 6)
-                                    .background(selectedPeriod == period ? Color("Primary") : Color("SurfaceLight"))
+                                    .background(selectedPeriod == period ? Color("AppPrimary") : Color("SurfaceLight"))
                                     .foregroundColor(selectedPeriod == period ? .black : .white)
                                     .cornerRadius(8)
                             }
@@ -41,23 +41,23 @@ struct PerformanceView: View {
                     ], spacing: 12) {
                         StatCard(
                             icon: "target",
-                            iconColor: Color("Primary"),
+                            iconColor: Color("AppPrimary"),
                             label: "System Win Rate",
                             value: "68.5%",
                             trend: "+2.3%"
                         )
                         StatCard(
                             icon: "chart.bar.fill",
-                            iconColor: Color("Secondary"),
+                            iconColor: Color("AppSecondary"),
                             label: "Your Win Rate",
-                            value: "\(userStore.stats.winRate, specifier: "%.1f")%",
+                            value: String(format: "%.1f%%", userStore.stats.winRate),
                             trend: "+5.1%"
                         )
                         StatCard(
                             icon: "arrow.up.right",
                             iconColor: Color("Bullish"),
                             label: "Total P&L",
-                            value: "$\(userStore.stats.totalPnl, specifier: "%.0f")",
+                            value: String(format: "$%.0f", userStore.stats.totalPnl),
                             trend: "+12.5%"
                         )
                         StatCard(
@@ -83,7 +83,7 @@ struct PerformanceView: View {
                                 )
                                 .foregroundStyle(
                                     LinearGradient(
-                                        colors: [Color("Primary").opacity(0.3), Color("Primary").opacity(0.0)],
+                                        colors: [Color("AppPrimary").opacity(0.3), Color("AppPrimary").opacity(0.0)],
                                         startPoint: .top,
                                         endPoint: .bottom
                                     )
@@ -93,7 +93,7 @@ struct PerformanceView: View {
                                     x: .value("Date", item.date),
                                     y: .value("P&L", item.cumulative)
                                 )
-                                .foregroundStyle(Color("Primary"))
+                                .foregroundStyle(Color("AppPrimary"))
                             }
                             .frame(height: 200)
                             .padding(.horizontal)
@@ -247,7 +247,7 @@ struct SectorCard: View {
             Text("\(winRate)%")
                 .font(.headline)
                 .fontWeight(.bold)
-            Text("Beta: \(beta, specifier: "%.1f")")
+            Text(String(format: "Beta: %.1f", beta))
                 .font(.caption2)
                 .foregroundColor(.gray)
         }

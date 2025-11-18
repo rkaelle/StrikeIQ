@@ -72,11 +72,11 @@ struct ModuleCard: View {
         HStack(spacing: 12) {
             ZStack {
                 Circle()
-                    .fill(Color("Primary").opacity(0.2))
+                    .fill(Color("AppPrimary").opacity(0.2))
                     .frame(width: 50, height: 50)
 
                 Image(systemName: icon)
-                    .foregroundColor(Color("Primary"))
+                    .foregroundColor(Color("AppPrimary"))
             }
 
             VStack(alignment: .leading, spacing: 4) {
@@ -127,7 +127,7 @@ struct QuoteCard: View {
         VStack(spacing: 12) {
             Image(systemName: "quote.opening")
                 .font(.title)
-                .foregroundColor(Color("Primary"))
+                .foregroundColor(Color("AppPrimary"))
 
             Text(quote.0)
                 .font(.subheadline)

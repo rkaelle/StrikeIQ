@@ -34,7 +34,7 @@ struct ContentView: View {
                 }
                 .tag(3)
         }
-        .accentColor(Color("Primary"))
+        .accentColor(Color("AppPrimary"))
     }
 }
 
@@ -118,13 +118,13 @@ struct MarketTicker: View {
                 .font(.system(.subheadline, design: .monospaced))
                 .fontWeight(.semibold)
 
-            Text("$\(price, specifier: "%.2f")")
+            Text(String(format: "$%.2f", price))
                 .font(.system(.subheadline, design: .monospaced))
 
             HStack(spacing: 2) {
                 Image(systemName: change >= 0 ? "arrow.up" : "arrow.down")
                     .font(.caption2)
-                Text("\(abs(change), specifier: "%.2f")%")
+                Text(String(format: "%.2f%%", abs(change)))
                     .font(.caption)
             }
             .foregroundColor(change >= 0 ? Color("Bullish") : Color("Bearish"))
@@ -177,7 +177,7 @@ struct FilterChip: View {
                 .fontWeight(.medium)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
-                .background(isActive ? Color("Primary") : Color("SurfaceLight"))
+                .background(isActive ? Color("AppPrimary") : Color("SurfaceLight"))
                 .foregroundColor(isActive ? .black : .white)
                 .cornerRadius(16)
         }
@@ -201,7 +201,7 @@ struct FiltersSheet: View {
                                 Spacer()
                                 if signalStore.selectedSignalType == type {
                                     Image(systemName: "checkmark")
-                                        .foregroundColor(Color("Primary"))
+                                        .foregroundColor(Color("AppPrimary"))
                                 }
                             }
                         }

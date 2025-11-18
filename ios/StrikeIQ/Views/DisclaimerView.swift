@@ -33,7 +33,7 @@ struct DisclaimerView: View {
                 VStack(spacing: 16) {
                     DisclaimerItem(
                         icon: "shield.fill",
-                        iconColor: Color("Primary"),
+                        iconColor: Color("AppPrimary"),
                         title: "Not Financial Advice",
                         message: "StrikeIQ provides trading signals for educational and informational purposes only. This is NOT financial advice, and you should NOT rely solely on these signals for trading decisions."
                     )
@@ -47,7 +47,7 @@ struct DisclaimerView: View {
 
                     DisclaimerItem(
                         icon: "info.circle.fill",
-                        iconColor: Color("Secondary"),
+                        iconColor: Color("AppSecondary"),
                         title: "Do Your Own Research",
                         message: "Always conduct your own research and analysis before making any trading decisions. Past performance does not guarantee future results. Consult with a qualified financial advisor before trading."
                     )
@@ -71,7 +71,7 @@ struct DisclaimerView: View {
                     .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(Color("Primary"))
+                    .background(Color("AppPrimary"))
                     .cornerRadius(12)
             }
             .padding()
