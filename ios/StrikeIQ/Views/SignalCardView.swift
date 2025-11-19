@@ -27,9 +27,12 @@ struct SignalCardView: View {
                     // Ticker Info
                     VStack(alignment: .leading, spacing: 4) {
                         HStack(spacing: 8) {
-                            Text(signal.ticker)
-                                .font(.title2)
-                                .fontWeight(.bold)
+                            NavigationLink(destination: StockDetailView(ticker: signal.ticker)) {
+                                Text(signal.ticker)
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .foregroundColor(.white)
+                            }
 
                             Text(signal.direction.rawValue)
                                 .font(.caption)

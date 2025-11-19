@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import {
@@ -14,6 +15,7 @@ interface SignalCardProps {
 }
 
 export default function SignalCard({ signal }: SignalCardProps) {
+  const router = useRouter()
   const [expanded, setExpanded] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
   const { addToWatchlist, acceptSignal, rejectSignal } = useSignalStore()
@@ -70,7 +72,12 @@ export default function SignalCard({ signal }: SignalCardProps) {
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xl font-bold">{signal.ticker}</span>
+              <button
+                onClick={() => router.push(`/stock/${signal.ticker}`)}
+                className="text-xl font-bold hover:text-primary transition-colors"
+              >
+                {signal.ticker}
+              </button>
               <span className={`px-2 py-0.5 rounded text-xs font-medium ${
                 isBullish ? 'bg-bullish/20 text-bullish' : 'bg-bearish/20 text-bearish'
               }`}>

@@ -2,39 +2,106 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var signalStore: SignalStore
+    @EnvironmentObject var authStore: AuthStore
     @State private var selectedTab = 0
 
     var body: some View {
-        TabView(selection: $selectedTab) {
-            SignalsView()
-                .tabItem {
-                    Image(systemName: "bolt.fill")
-                    Text("Signals")
-                }
-                .tag(0)
+        Group {
+            if authStore.isAuthenticated {
+                TabView(selection: $selectedTab) {
+                    SignalsView()
+                        .tabItem {
+                            Image(systemName: "bolt.fill")
+                            Text("Signals")
+                        }
+                        .tag(0)
 
-            WatchlistView()
-                .tabItem {
-                    Image(systemName: "list.bullet")
-                    Text("Watchlist")
-                }
-                .tag(1)
+                    WatchlistView()
+                        .tabItem {
+                            Image(systemName: "list.bullet")
+                            Text("Watchlist")
+                        }
+                        .tag(1)
 
-            PerformanceView()
-                .tabItem {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                    Text("Performance")
-                }
-                .tag(2)
+                    PerformanceView()
+                        .tabItem {
+                            Image(systemName: "chart.line.uptrend.xyaxis")
+                            Text("Performance")
+                        }
+                        .tag(2)
 
-            EducationView()
-                .tabItem {
-                    Image(systemName: "book.fill")
-                    Text("Learn")
+                    ProfileView()
+                        .tabItem {
+                            Image(systemName: "person.fill")
+                            Text("Profile")
+                        }
+                        .tag(3)
                 }
-                .tag(3)
+                .accentColor(Color("AppPrimary"))
+            } else {
+                LoginView()
+            }
         }
-        .accentColor(Color("AppPrimary"))
+    }
+}
+
+struct ProfileView: View {
+    @EnvironmentObject var authStore: AuthStore
+
+    var body: some View {
+        NavigationView {
+            List {
+                Section {
+                    HStack {
+                        Image(systemName: "person.circle.fill")
+                            .font(.system(size: 50))
+                            .foregroundColor(Color("AppPrimary"))
+
+                        VStack(alignment: .leading) {
+                            Text(authStore.user?.name ?? "User")
+                                .font(.headline)
+                            Text(authStore.user?.email ?? "")
+                                .font(.caption)
+                                .foregroundColor(.gray)
+                        }
+                    }
+                    .padding(.vertical, 8)
+                }
+
+                Section("Settings") {
+                    NavigationLink(destination: Text("Notifications")) {
+                        Label("Notifications", systemImage: "bell")
+                    }
+                    NavigationLink(destination: Text("Risk Settings")) {
+                        Label("Risk Settings", systemImage: "shield")
+                    }
+                    NavigationLink(destination: Text("Appearance")) {
+                        Label("Appearance", systemImage: "paintbrush")
+                    }
+                }
+
+                Section("Support") {
+                    NavigationLink(destination: EducationView()) {
+                        Label("Education", systemImage: "book")
+                    }
+                    NavigationLink(destination: Text("Help")) {
+                        Label("Help & FAQ", systemImage: "questionmark.circle")
+                    }
+                }
+
+                Section {
+                    Button(action: { authStore.logout() }) {
+                        HStack {
+                            Spacer()
+                            Text("Sign Out")
+                                .foregroundColor(.red)
+                            Spacer()
+                        }
+                    }
+                }
+            }
+            .navigationTitle("Profile")
+        }
     }
 }
 

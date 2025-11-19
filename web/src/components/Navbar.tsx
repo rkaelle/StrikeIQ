@@ -1,7 +1,10 @@
 'use client'
 
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import { motion } from 'framer-motion'
-import { Activity, List, TrendingUp, BookOpen, Settings, Bell } from 'lucide-react'
+import { Activity, List, TrendingUp, BookOpen, Bell, User, LogIn } from 'lucide-react'
+import { authService } from '@/services/api'
 
 interface NavbarProps {
   activeTab: 'signals' | 'watchlist' | 'performance' | 'education'
@@ -9,6 +12,14 @@ interface NavbarProps {
 }
 
 export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
+  const router = useRouter()
+  const [user, setUser] = useState<any>(null)
+
+  useEffect(() => {
+    const currentUser = authService.getCurrentUser()
+    setUser(currentUser)
+  }, [])
+
   const tabs = [
     { id: 'signals', label: 'Signals', icon: Activity },
     { id: 'watchlist', label: 'Watchlist', icon: List },
@@ -64,9 +75,24 @@ export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
               <Bell size={20} />
               <span className="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
             </button>
-            <button className="p-2 text-gray-400 hover:text-white hover:bg-surface-light rounded-lg transition-colors">
-              <Settings size={20} />
-            </button>
+
+            {user ? (
+              <button
+                onClick={() => router.push('/dashboard')}
+                className="flex items-center gap-2 px-3 py-2 text-gray-400 hover:text-white hover:bg-surface-light rounded-lg transition-colors"
+              >
+                <User size={20} />
+                <span className="hidden sm:inline text-sm">{user.name || 'Dashboard'}</span>
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push('/login')}
+                className="flex items-center gap-2 px-3 py-2 bg-primary hover:bg-primary/90 text-black font-medium rounded-lg transition-colors"
+              >
+                <LogIn size={18} />
+                <span className="hidden sm:inline text-sm">Sign In</span>
+              </button>
+            )}
           </div>
         </div>
       </div>
