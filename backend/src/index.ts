@@ -21,16 +21,15 @@ const app = express();
 const server = http.createServer(app);
 
 // CORS origins - add your production domain
-const allowedOrigins = [
+const allowedOrigins: string[] = [
   'http://localhost:3000',
   'http://localhost:19006',
   process.env.FRONTEND_URL,
-  // Add your Vercel domain
-].filter(Boolean);
+].filter((origin): origin is string => Boolean(origin));
 
 const io = new SocketServer(server, {
   cors: {
-    origin: allowedOrigins,
+    origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
     methods: ['GET', 'POST']
   }
 });
