@@ -96,6 +96,20 @@ class APIService {
         return fetch(components.url!)
     }
 
+    // MARK: - Education
+
+    func fetchEducationModules() -> AnyPublisher<[EducationModule], Error> {
+        fetch(URL(string: "\(baseURL)/education/modules")!)
+    }
+
+    func fetchEducationModule(id: String) -> AnyPublisher<EducationModule, Error> {
+        fetch(URL(string: "\(baseURL)/education/modules/\(id)")!)
+    }
+
+    func fetchGlossary() -> AnyPublisher<[GlossaryTerm], Error> {
+        fetch(URL(string: "\(baseURL)/education/glossary")!)
+    }
+
     // MARK: - Generic HTTP Methods
 
     private func fetch<T: Decodable>(_ url: URL) -> AnyPublisher<T, Error> {
@@ -205,4 +219,21 @@ struct UserMetrics: Codable {
     let totalPnl: String
     let avgPnl: String
     let currentStreak: String
+}
+
+struct EducationModule: Codable, Identifiable {
+    let id: String
+    let title: String
+    let description: String
+    let difficulty: String
+    let duration: String
+    let topics: [String]
+    let content: String?
+}
+
+struct GlossaryTerm: Codable, Identifiable {
+    let id: String
+    let term: String
+    let definition: String
+    let category: String
 }

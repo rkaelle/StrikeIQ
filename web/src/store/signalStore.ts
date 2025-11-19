@@ -1,7 +1,5 @@
 import { create } from 'zustand'
-import axios from 'axios'
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+import { signalService, watchlistService, metricsService, initializeWebSocket, authService } from '@/services/api'
 
 export interface Signal {
   id: string
@@ -41,18 +39,41 @@ interface Filters {
   ticker: string | null
 }
 
+interface SystemMetrics {
+  period: string
+  overall: {
+    total: number
+    wins: number
+    losses: number
+    pending: number
+    winRate: string
+    avgReturn: string
+    avgConfidence: string
+    avgRiskReward: string
+  }
+  byType: Record<string, { total: number; wins: number; losses: number; winRate: string }>
+}
+
 interface SignalStore {
   signals: Signal[]
   watchlist: Signal[]
   isLoading: boolean
   error: string | null
   filters: Filters
+  metrics: SystemMetrics | null
+  wsConnected: boolean
+
+  // Actions
   setFilters: (filters: Partial<Filters>) => void
   fetchSignals: () => Promise<void>
+  fetchWatchlist: () => Promise<void>
+  fetchMetrics: (days?: number) => Promise<void>
   addToWatchlist: (signal: Signal) => void
   removeFromWatchlist: (signalId: string) => void
-  acceptSignal: (signalId: string) => void
+  acceptSignal: (signal: Signal) => void
   rejectSignal: (signalId: string) => void
+  initWebSocket: () => void
+  addSignal: (signal: Signal) => void
 }
 
 export const useSignalStore = create<SignalStore>((set, get) => ({
@@ -60,6 +81,8 @@ export const useSignalStore = create<SignalStore>((set, get) => ({
   watchlist: [],
   isLoading: false,
   error: null,
+  metrics: null,
+  wsConnected: false,
   filters: {
     signalType: null,
     direction: null,
@@ -85,44 +108,97 @@ export const useSignalStore = create<SignalStore>((set, get) => ({
       if (filters.minConfidence) params.minConfidence = filters.minConfidence
       if (filters.ticker) params.ticker = filters.ticker
 
-      const response = await axios.get(`${API_URL}/signals`, { params })
-      set({ signals: response.data, isLoading: false })
+      const signals = await signalService.getAll(params)
+      set({ signals, isLoading: false })
     } catch (error) {
       console.error('Error fetching signals:', error)
-      // Use mock data for development
+      // Fallback to mock data if backend is not available
       set({
         signals: generateMockSignals(),
         isLoading: false,
-        error: null
+        error: 'Using demo data - backend not connected'
       })
     }
   },
 
-  addToWatchlist: (signal) => {
-    set((state) => ({
-      watchlist: [...state.watchlist, signal]
-    }))
+  fetchWatchlist: async () => {
+    try {
+      const user = authService.getCurrentUser()
+      if (!user) return
+
+      const watchlistData = await watchlistService.get(user.id)
+      const signals = watchlistData.map((item: any) => item.signal)
+      set({ watchlist: signals })
+    } catch (error) {
+      console.error('Error fetching watchlist:', error)
+    }
   },
 
-  removeFromWatchlist: (signalId) => {
-    set((state) => ({
-      watchlist: state.watchlist.filter(s => s.id !== signalId)
-    }))
+  fetchMetrics: async (days = 30) => {
+    try {
+      const metrics = await metricsService.getSystem(days)
+      set({ metrics })
+    } catch (error) {
+      console.error('Error fetching metrics:', error)
+    }
   },
 
-  acceptSignal: (signalId) => {
-    // Handle signal acceptance logic
-    console.log('Signal accepted:', signalId)
+  addToWatchlist: async (signal) => {
+    try {
+      const user = authService.getCurrentUser()
+      if (user) {
+        await watchlistService.add(user.id, signal.id)
+      }
+      set((state) => ({
+        watchlist: [...state.watchlist, signal]
+      }))
+    } catch (error) {
+      console.error('Error adding to watchlist:', error)
+      // Still add locally even if API fails
+      set((state) => ({
+        watchlist: [...state.watchlist, signal]
+      }))
+    }
+  },
+
+  removeFromWatchlist: async (signalId) => {
+    try {
+      // In a real app, we'd need the watchlist item ID
+      set((state) => ({
+        watchlist: state.watchlist.filter(s => s.id !== signalId)
+      }))
+    } catch (error) {
+      console.error('Error removing from watchlist:', error)
+    }
+  },
+
+  acceptSignal: (signal) => {
+    // Record that user accepted this signal
+    console.log('Signal accepted:', signal.id)
+    // Could create a trade record here
   },
 
   rejectSignal: (signalId) => {
     set((state) => ({
       signals: state.signals.filter(s => s.id !== signalId)
     }))
+  },
+
+  initWebSocket: () => {
+    initializeWebSocket((signal: Signal) => {
+      get().addSignal(signal)
+    })
+    set({ wsConnected: true })
+  },
+
+  addSignal: (signal) => {
+    set((state) => ({
+      signals: [signal, ...state.signals]
+    }))
   }
 }))
 
-// Mock data generator for development
+// Mock data generator for development/fallback
 function generateMockSignals(): Signal[] {
   const tickers = ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA', 'AMD', 'AMZN', 'META']
   const signalTypes = ['0DTE', 'WEEKLY', 'EARNINGS', 'DARK_POOL', 'NEWS']
@@ -130,14 +206,14 @@ function generateMockSignals(): Signal[] {
 
   return Array.from({ length: 8 }, (_, i) => {
     const ticker = tickers[Math.floor(Math.random() * tickers.length)]
-    const direction = Math.random() > 0.5 ? 'CALL' : 'PUT'
+    const direction: 'CALL' | 'PUT' = Math.random() > 0.5 ? 'CALL' : 'PUT'
     const confidence = 50 + Math.floor(Math.random() * 40)
-    const basePrice = {
+    const basePrice: Record<string, number> = {
       'SPY': 450, 'QQQ': 380, 'AAPL': 175, 'TSLA': 250,
       'NVDA': 500, 'AMD': 120, 'AMZN': 180, 'META': 350
-    }[ticker] || 100
+    }
 
-    const strikePrice = Math.round(basePrice / 5) * 5 + (direction === 'CALL' ? 5 : -5)
+    const strikePrice = Math.round((basePrice[ticker] || 100) / 5) * 5 + (direction === 'CALL' ? 5 : -5)
     const entryPrice = 2 + Math.random() * 8
     const stopLoss = entryPrice * 0.5
     const targetPrice = entryPrice * 1.5

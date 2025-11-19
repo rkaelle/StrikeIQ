@@ -6,6 +6,7 @@ class SignalStore: ObservableObject {
     @Published var watchlist: [Signal] = []
     @Published var isLoading = false
     @Published var error: String?
+    @Published var wsConnected = false
 
     // Filters
     @Published var selectedSignalType: Signal.SignalType?
@@ -13,9 +14,37 @@ class SignalStore: ObservableObject {
     @Published var minConfidence: Double = 0
 
     private var cancellables = Set<AnyCancellable>()
+    private let apiService = APIService.shared
+    private let wsService = WebSocketService.shared
 
     init() {
+        setupWebSocket()
         fetchSignals()
+    }
+
+    private func setupWebSocket() {
+        // Subscribe to WebSocket connection status
+        wsService.$isConnected
+            .receive(on: DispatchQueue.main)
+            .assign(to: &$wsConnected)
+
+        // Subscribe to new signals from WebSocket
+        wsService.signalReceived
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] signal in
+                self?.addSignal(signal)
+            }
+            .store(in: &cancellables)
+
+        // Connect to WebSocket
+        wsService.connect()
+    }
+
+    private func addSignal(_ signal: Signal) {
+        // Add new signal at the beginning of the list
+        if !signals.contains(where: { $0.id == signal.id }) {
+            signals.insert(signal, at: 0)
+        }
     }
 
     var filteredSignals: [Signal] {
@@ -35,13 +64,29 @@ class SignalStore: ObservableObject {
 
     func fetchSignals() {
         isLoading = true
+        error = nil
 
-        // In production, fetch from API
-        // For now, use mock data
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-            self.signals = Signal.mockSignals()
-            self.isLoading = false
-        }
+        apiService.fetchSignals(
+            type: selectedSignalType,
+            direction: selectedDirection,
+            minConfidence: minConfidence > 0 ? minConfidence : nil
+        )
+        .sink(
+            receiveCompletion: { [weak self] completion in
+                self?.isLoading = false
+                if case .failure(let err) = completion {
+                    print("Error fetching signals: \(err)")
+                    // Fallback to mock data if API fails
+                    self?.signals = Signal.mockSignals()
+                    self?.error = "Using demo data - backend not connected"
+                }
+            },
+            receiveValue: { [weak self] signals in
+                self?.signals = signals
+                self?.isLoading = false
+            }
+        )
+        .store(in: &cancellables)
     }
 
     func addToWatchlist(_ signal: Signal) {
