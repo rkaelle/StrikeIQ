@@ -198,51 +198,7 @@ export const useSignalStore = create<SignalStore>((set, get) => ({
   }
 }))
 
-// Mock data generator for development/fallback
+// Empty fallback - returns empty array when backend is unavailable
 function generateMockSignals(): Signal[] {
-  const tickers = ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA', 'AMD', 'AMZN', 'META']
-  const signalTypes = ['0DTE', 'WEEKLY', 'EARNINGS', 'DARK_POOL', 'NEWS']
-  const riskLevels = ['LOW', 'MEDIUM', 'HIGH', 'EXTREME']
-
-  return Array.from({ length: 8 }, (_, i) => {
-    const ticker = tickers[Math.floor(Math.random() * tickers.length)]
-    const direction: 'CALL' | 'PUT' = Math.random() > 0.5 ? 'CALL' : 'PUT'
-    const confidence = 50 + Math.floor(Math.random() * 40)
-    const basePrice: Record<string, number> = {
-      'SPY': 450, 'QQQ': 380, 'AAPL': 175, 'TSLA': 250,
-      'NVDA': 500, 'AMD': 120, 'AMZN': 180, 'META': 350
-    }
-
-    const strikePrice = Math.round((basePrice[ticker] || 100) / 5) * 5 + (direction === 'CALL' ? 5 : -5)
-    const entryPrice = 2 + Math.random() * 8
-    const stopLoss = entryPrice * 0.5
-    const targetPrice = entryPrice * 1.5
-
-    return {
-      id: `signal-${i + 1}`,
-      ticker,
-      signalType: signalTypes[Math.floor(Math.random() * signalTypes.length)],
-      direction,
-      strikePrice,
-      expirationDate: new Date(Date.now() + Math.random() * 7 * 24 * 60 * 60 * 1000).toISOString(),
-      entryPrice,
-      stopLoss,
-      targetPrice,
-      confidence,
-      flowScore: 40 + Math.random() * 50,
-      volumeScore: 40 + Math.random() * 50,
-      oiScore: 40 + Math.random() * 50,
-      technicalScore: 40 + Math.random() * 50,
-      sentimentScore: 40 + Math.random() * 50,
-      volatilityScore: 40 + Math.random() * 50,
-      riskLevel: riskLevels[Math.floor(Math.random() * riskLevels.length)],
-      maxLoss: entryPrice - stopLoss,
-      potentialGain: targetPrice - entryPrice,
-      riskReward: (targetPrice - entryPrice) / (entryPrice - stopLoss),
-      reasoning: `Strong ${direction.toLowerCase()} flow detected with ${confidence}% confidence. Technical indicators align with entry point.`,
-      createdAt: new Date().toISOString(),
-      expiresAt: new Date(Date.now() + 8 * 60 * 60 * 1000).toISOString(),
-      isActive: true
-    }
-  })
+  return []
 }
