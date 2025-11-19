@@ -4,12 +4,18 @@ import cron from 'node-cron';
 
 const prisma = new PrismaClient();
 
+// Rate limiting helper - delay between API calls
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 // Fetch and store market data from Polygon.io
 async function fetchMarketData() {
   const tickers = ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA', 'AMD', 'AMZN', 'META', 'GOOGL', 'MSFT'];
 
   for (const ticker of tickers) {
     try {
+      // Rate limit: wait 12 seconds between requests (5 req/min = 12s between)
+      await delay(12000);
+
       // Fetch from Polygon.io API
       const response = await axios.get(`https://api.polygon.io/v2/aggs/ticker/${ticker}/prev`, {
         params: { apiKey: process.env.POLYGON_API_KEY }
@@ -23,6 +29,7 @@ async function fetchMarketData() {
       // Fetch technical indicators from Alpha Vantage
       let rsi = 50, macd = 0;
       try {
+        await delay(12000); // Alpha Vantage also has rate limits
         const rsiResponse = await axios.get('https://www.alphavantage.co/query', {
           params: {
             function: 'RSI',
@@ -42,21 +49,9 @@ async function fetchMarketData() {
         console.error(`Error fetching RSI for ${ticker}:`, err);
       }
 
-      // Fetch implied volatility from options data
-      let impliedVolatility = 25, historicalVolatility = 20;
-      try {
-        const ivResponse = await axios.get(`https://api.polygon.io/v3/snapshot/options/${ticker}`, {
-          params: { apiKey: process.env.POLYGON_API_KEY }
-        });
-        if (ivResponse.data.results?.length > 0) {
-          const ivValues = ivResponse.data.results.map((opt: any) => opt.implied_volatility || 0).filter((v: number) => v > 0);
-          if (ivValues.length > 0) {
-            impliedVolatility = ivValues.reduce((a: number, b: number) => a + b, 0) / ivValues.length * 100;
-          }
-        }
-      } catch (err) {
-        // Options data may not be available for all tickers
-      }
+      // Skip IV fetch on free tier to reduce API calls
+      const impliedVolatility = 25;
+      const historicalVolatility = 20;
 
       await prisma.marketData.create({
         data: {
@@ -74,6 +69,8 @@ async function fetchMarketData() {
           macd
         }
       });
+
+      console.log(`✓ Fetched market data for ${ticker}`);
     } catch (error) {
       console.error(`Error fetching data for ${ticker}:`, error);
     }
@@ -86,6 +83,9 @@ async function fetchOptionsFlow() {
 
   for (const ticker of tickers) {
     try {
+      // Rate limit: wait 12 seconds between requests
+      await delay(12000);
+
       // Fetch options chain from Polygon.io
       const response = await axios.get(`https://api.polygon.io/v3/snapshot/options/${ticker}`, {
         params: {
@@ -93,6 +93,8 @@ async function fetchOptionsFlow() {
           limit: 50
         }
       });
+
+      console.log(`✓ Fetched options flow for ${ticker}`);
 
       const options = response.data.results || [];
 
@@ -148,6 +150,9 @@ async function fetchNews() {
 
   for (const ticker of tickers) {
     try {
+      // Rate limit: Finnhub free tier is 60 calls/min, so 1 second delay is safe
+      await delay(1000);
+
       // Fetch from Finnhub API
       const today = new Date();
       const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
@@ -160,6 +165,8 @@ async function fetchNews() {
           token: process.env.FINNHUB_API_KEY
         }
       });
+
+      console.log(`✓ Fetched news for ${ticker}`);
 
       const articles = response.data?.slice(0, 5) || [];
 
@@ -224,18 +231,18 @@ async function cleanupOldData() {
 
 // Start data collection
 export function startDataCollection() {
-  // Fetch market data every minute during market hours
-  cron.schedule('* 9-16 * * 1-5', () => {
+  // Fetch market data every 5 minutes during market hours (rate-limited)
+  cron.schedule('*/5 9-16 * * 1-5', () => {
     fetchMarketData();
   });
 
-  // Fetch options flow every 5 minutes
-  cron.schedule('*/5 9-16 * * 1-5', () => {
+  // Fetch options flow every 15 minutes (rate-limited, requires paid tier)
+  cron.schedule('*/15 9-16 * * 1-5', () => {
     fetchOptionsFlow();
   });
 
-  // Fetch news every 15 minutes
-  cron.schedule('*/15 * * * *', () => {
+  // Fetch news every 30 minutes
+  cron.schedule('*/30 * * * *', () => {
     fetchNews();
   });
 
@@ -244,12 +251,23 @@ export function startDataCollection() {
     cleanupOldData();
   });
 
-  // Initial data fetch
-  fetchMarketData();
-  fetchOptionsFlow();
-  fetchNews();
+  // Initial data fetch - staggered to avoid rate limits
+  console.log('📊 Data collection initialized - starting initial fetch...');
 
-  console.log('📊 Data collection initialized');
+  // Start with news (fastest, least rate-limited)
+  fetchNews().then(() => {
+    console.log('📰 Initial news fetch complete');
+    // Then fetch market data
+    return fetchMarketData();
+  }).then(() => {
+    console.log('📈 Initial market data fetch complete');
+    // Options flow last (most API calls)
+    return fetchOptionsFlow();
+  }).then(() => {
+    console.log('📊 Initial data collection complete');
+  }).catch(err => {
+    console.error('Error during initial data fetch:', err);
+  });
 }
 
 export { fetchMarketData, fetchOptionsFlow, fetchNews };
