@@ -41,7 +41,7 @@ export default function SignalCard({ signal }: SignalCardProps) {
   }
 
   const handleConfirmAccept = () => {
-    acceptSignal(signal.id)
+    acceptSignal(signal)
     setShowConfirmation(false)
   }
 
