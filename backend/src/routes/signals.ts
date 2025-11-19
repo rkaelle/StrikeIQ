@@ -132,4 +132,44 @@ router.get('/top/performers', async (req, res) => {
   }
 });
 
+// Debug: Get all signals including inactive
+router.get('/debug/all', async (req, res) => {
+  try {
+    const signals = await prisma.signal.findMany({
+      include: { accuracy: true },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+
+    const stats = {
+      total: signals.length,
+      active: signals.filter(s => s.isActive).length,
+      inactive: signals.filter(s => !s.isActive).length
+    };
+
+    res.json({ stats, signals });
+  } catch (error) {
+    console.error('Error fetching all signals:', error);
+    res.status(500).json({ error: 'Failed to fetch signals' });
+  }
+});
+
+// Fix: Activate all signals
+router.post('/fix/activate-all', async (req, res) => {
+  try {
+    const result = await prisma.signal.updateMany({
+      where: { isActive: false },
+      data: { isActive: true }
+    });
+
+    res.json({
+      message: `Activated ${result.count} signals`,
+      count: result.count
+    });
+  } catch (error) {
+    console.error('Error activating signals:', error);
+    res.status(500).json({ error: 'Failed to activate signals' });
+  }
+});
+
 export default router;

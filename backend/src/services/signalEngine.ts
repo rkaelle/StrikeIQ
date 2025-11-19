@@ -217,6 +217,7 @@ export async function createSignal(input: SignalInput): Promise<any> {
       riskReward,
       reasoning,
       expiresAt,
+      isActive: true,
       accuracy: {
         create: {
           outcome: 'PENDING'
