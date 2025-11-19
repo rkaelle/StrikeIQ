@@ -4,34 +4,59 @@ import cron from 'node-cron';
 
 const prisma = new PrismaClient();
 
-// Mock data generation for development
-function generateMockPrice(basePrice: number): number {
-  const change = (Math.random() - 0.5) * 2;
-  return Math.round((basePrice + change) * 100) / 100;
-}
-
-// Fetch and store market data
+// Fetch and store market data from Polygon.io
 async function fetchMarketData() {
   const tickers = ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA', 'AMD', 'AMZN', 'META', 'GOOGL', 'MSFT'];
 
   for (const ticker of tickers) {
     try {
-      // In production, fetch from actual API
-      // const response = await axios.get(`https://api.polygon.io/v2/aggs/ticker/${ticker}/prev`, {
-      //   params: { apiKey: process.env.POLYGON_API_KEY }
-      // });
+      // Fetch from Polygon.io API
+      const response = await axios.get(`https://api.polygon.io/v2/aggs/ticker/${ticker}/prev`, {
+        params: { apiKey: process.env.POLYGON_API_KEY }
+      });
 
-      // Mock data for development
-      const basePrice = {
-        'SPY': 450, 'QQQ': 380, 'AAPL': 175, 'TSLA': 250, 'NVDA': 500,
-        'AMD': 120, 'AMZN': 180, 'META': 350, 'GOOGL': 140, 'MSFT': 400
-      }[ticker] || 100;
+      const result = response.data.results?.[0];
+      if (!result) continue;
 
-      const close = generateMockPrice(basePrice);
-      const open = generateMockPrice(basePrice);
-      const high = Math.max(close, open) + Math.random() * 2;
-      const low = Math.min(close, open) - Math.random() * 2;
-      const volume = Math.floor(Math.random() * 50000000);
+      const { o: open, h: high, l: low, c: close, v: volume, vw: vwap } = result;
+
+      // Fetch technical indicators from Alpha Vantage
+      let rsi = 50, macd = 0;
+      try {
+        const rsiResponse = await axios.get('https://www.alphavantage.co/query', {
+          params: {
+            function: 'RSI',
+            symbol: ticker,
+            interval: 'daily',
+            time_period: 14,
+            series_type: 'close',
+            apikey: process.env.ALPHA_VANTAGE_KEY
+          }
+        });
+        const rsiData = rsiResponse.data['Technical Analysis: RSI'];
+        if (rsiData) {
+          const latestDate = Object.keys(rsiData)[0];
+          rsi = parseFloat(rsiData[latestDate]?.RSI || '50');
+        }
+      } catch (err) {
+        console.error(`Error fetching RSI for ${ticker}:`, err);
+      }
+
+      // Fetch implied volatility from options data
+      let impliedVolatility = 25, historicalVolatility = 20;
+      try {
+        const ivResponse = await axios.get(`https://api.polygon.io/v3/snapshot/options/${ticker}`, {
+          params: { apiKey: process.env.POLYGON_API_KEY }
+        });
+        if (ivResponse.data.results?.length > 0) {
+          const ivValues = ivResponse.data.results.map((opt: any) => opt.implied_volatility || 0).filter((v: number) => v > 0);
+          if (ivValues.length > 0) {
+            impliedVolatility = ivValues.reduce((a: number, b: number) => a + b, 0) / ivValues.length * 100;
+          }
+        }
+      } catch (err) {
+        // Options data may not be available for all tickers
+      }
 
       await prisma.marketData.create({
         data: {
@@ -41,12 +66,12 @@ async function fetchMarketData() {
           high,
           low,
           close,
-          volume: BigInt(volume),
-          impliedVolatility: 20 + Math.random() * 30,
-          historicalVolatility: 15 + Math.random() * 25,
-          vwap: (high + low + close) / 3,
-          rsi: 30 + Math.random() * 40,
-          macd: (Math.random() - 0.5) * 5
+          volume: BigInt(Math.round(volume)),
+          impliedVolatility,
+          historicalVolatility,
+          vwap: vwap || (high + low + close) / 3,
+          rsi,
+          macd
         }
       });
     } catch (error) {
@@ -55,51 +80,59 @@ async function fetchMarketData() {
   }
 }
 
-// Fetch and store options flow
+// Fetch and store options flow from Polygon.io
 async function fetchOptionsFlow() {
   const tickers = ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA'];
 
   for (const ticker of tickers) {
     try {
-      // Generate mock options flow
-      const numFlows = Math.floor(Math.random() * 10) + 1;
+      // Fetch options chain from Polygon.io
+      const response = await axios.get(`https://api.polygon.io/v3/snapshot/options/${ticker}`, {
+        params: {
+          apiKey: process.env.POLYGON_API_KEY,
+          limit: 50
+        }
+      });
 
-      for (let i = 0; i < numFlows; i++) {
-        const basePrice = {
-          'SPY': 450, 'QQQ': 380, 'AAPL': 175, 'TSLA': 250, 'NVDA': 500
-        }[ticker] || 100;
+      const options = response.data.results || [];
 
-        const optionType = Math.random() > 0.5 ? 'CALL' : 'PUT';
-        const strikeOffset = Math.floor((Math.random() - 0.5) * 10) * 5;
-        const strikePrice = Math.round(basePrice / 5) * 5 + strikeOffset;
+      for (const option of options) {
+        const details = option.details || {};
+        const day = option.day || {};
+        const greeks = option.greeks || {};
 
-        const expirationDate = new Date();
-        expirationDate.setDate(expirationDate.getDate() + Math.floor(Math.random() * 30));
+        const volume = day.volume || 0;
+        const openInterest = option.open_interest || 0;
+        const premium = day.vwap || day.close || 0;
 
-        const volume = Math.floor(Math.random() * 5000) + 100;
-        const openInterest = Math.floor(Math.random() * 50000) + 1000;
-        const premium = Math.random() * 10 + 0.5;
+        // Determine if unusual activity
+        const avgVolume = openInterest > 0 ? openInterest / 10 : 1000;
+        const isUnusual = volume > avgVolume * 2;
+        const isSweep = isUnusual && volume > 1000;
+        const isBlock = isUnusual && !isSweep && volume > 500;
 
-        const isUnusual = volume > 2000 && Math.random() > 0.7;
-        const isSweep = isUnusual && Math.random() > 0.5;
-        const isBlock = !isSweep && isUnusual && Math.random() > 0.5;
+        // Determine sentiment
+        let sentiment = 'NEUTRAL';
+        if (details.contract_type === 'call') {
+          sentiment = greeks.delta > 0.5 ? 'BULLISH' : 'NEUTRAL';
+        } else {
+          sentiment = greeks.delta < -0.5 ? 'BEARISH' : 'NEUTRAL';
+        }
 
         await prisma.optionsFlow.create({
           data: {
             ticker,
             timestamp: new Date(),
-            strikePrice,
-            expirationDate,
-            optionType,
+            strikePrice: details.strike_price || 0,
+            expirationDate: new Date(details.expiration_date || Date.now()),
+            optionType: details.contract_type?.toUpperCase() || 'CALL',
             volume,
             openInterest,
             premium,
             isUnusual,
             isSweep,
             isBlock,
-            sentiment: optionType === 'CALL'
-              ? (Math.random() > 0.3 ? 'BULLISH' : 'NEUTRAL')
-              : (Math.random() > 0.3 ? 'BEARISH' : 'NEUTRAL')
+            sentiment
           }
         });
       }
@@ -109,50 +142,61 @@ async function fetchOptionsFlow() {
   }
 }
 
-// Fetch and store news
+// Fetch and store news from Finnhub
 async function fetchNews() {
   const tickers = ['SPY', 'AAPL', 'TSLA', 'NVDA', 'MSFT'];
 
   for (const ticker of tickers) {
     try {
-      // In production, fetch from news API
-      // const response = await axios.get('https://newsapi.org/v2/everything', {
-      //   params: {
-      //     q: ticker,
-      //     apiKey: process.env.NEWS_API_KEY,
-      //     pageSize: 5
-      //   }
-      // });
+      // Fetch from Finnhub API
+      const today = new Date();
+      const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
 
-      // Generate mock news
-      const headlines = [
-        `${ticker} shows strong momentum ahead of earnings`,
-        `Analysts upgrade ${ticker} price target`,
-        `${ticker} announces new product launch`,
-        `${ticker} faces regulatory concerns`,
-        `Institutional investors increase ${ticker} holdings`
-      ];
-
-      const randomHeadline = headlines[Math.floor(Math.random() * headlines.length)];
-      const sentiment = randomHeadline.includes('upgrade') || randomHeadline.includes('strong')
-        ? 'POSITIVE'
-        : randomHeadline.includes('concerns')
-        ? 'NEGATIVE'
-        : 'NEUTRAL';
-
-      await prisma.newsArticle.create({
-        data: {
-          ticker,
-          title: randomHeadline,
-          summary: `This article discusses recent developments regarding ${ticker}.`,
-          source: 'Market News',
-          url: `https://example.com/news/${ticker.toLowerCase()}`,
-          publishedAt: new Date(),
-          sentiment,
-          sentimentScore: sentiment === 'POSITIVE' ? 0.6 : sentiment === 'NEGATIVE' ? -0.4 : 0,
-          relevance: 0.7 + Math.random() * 0.3
+      const response = await axios.get('https://finnhub.io/api/v1/company-news', {
+        params: {
+          symbol: ticker,
+          from: weekAgo.toISOString().split('T')[0],
+          to: today.toISOString().split('T')[0],
+          token: process.env.FINNHUB_API_KEY
         }
       });
+
+      const articles = response.data?.slice(0, 5) || [];
+
+      for (const article of articles) {
+        // Analyze sentiment from headline
+        const headline = (article.headline || '').toLowerCase();
+        let sentiment = 'NEUTRAL';
+        let sentimentScore = 0;
+
+        const positiveWords = ['upgrade', 'beat', 'surge', 'rally', 'strong', 'bullish', 'record', 'growth'];
+        const negativeWords = ['downgrade', 'miss', 'fall', 'decline', 'weak', 'bearish', 'concern', 'risk'];
+
+        const positiveCount = positiveWords.filter(word => headline.includes(word)).length;
+        const negativeCount = negativeWords.filter(word => headline.includes(word)).length;
+
+        if (positiveCount > negativeCount) {
+          sentiment = 'POSITIVE';
+          sentimentScore = Math.min(0.3 + positiveCount * 0.2, 1);
+        } else if (negativeCount > positiveCount) {
+          sentiment = 'NEGATIVE';
+          sentimentScore = Math.max(-0.3 - negativeCount * 0.2, -1);
+        }
+
+        await prisma.newsArticle.create({
+          data: {
+            ticker,
+            title: article.headline || 'No title',
+            summary: article.summary || '',
+            source: article.source || 'Unknown',
+            url: article.url || '',
+            publishedAt: new Date(article.datetime * 1000),
+            sentiment,
+            sentimentScore,
+            relevance: article.related?.includes(ticker) ? 0.9 : 0.7
+          }
+        });
+      }
     } catch (error) {
       console.error(`Error fetching news for ${ticker}:`, error);
     }
