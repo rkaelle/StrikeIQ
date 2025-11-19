@@ -19,15 +19,27 @@ dotenv.config();
 
 const app = express();
 const server = http.createServer(app);
+
+// CORS origins - add your production domain
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:19006',
+  process.env.FRONTEND_URL,
+  // Add your Vercel domain
+].filter(Boolean);
+
 const io = new SocketServer(server, {
   cors: {
-    origin: ['http://localhost:3000', 'http://localhost:19006'],
+    origin: allowedOrigins,
     methods: ['GET', 'POST']
   }
 });
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
+  credentials: true
+}));
 app.use(express.json());
 
 // Health check
