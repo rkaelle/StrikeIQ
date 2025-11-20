@@ -132,7 +132,31 @@ router.get('/technicals/:ticker', async (req, res) => {
   try {
     const { ticker } = req.params;
     const analysis = await analyzeTechnicals(ticker);
-    res.json(analysis);
+
+    // Ensure all numeric values are valid (not NaN or undefined)
+    const safeAnalysis = {
+      ...analysis,
+      score: Number.isFinite(analysis.score) ? analysis.score : 50,
+      volumeScore: Number.isFinite(analysis.volumeScore) ? analysis.volumeScore : 50,
+      currentPrice: Number.isFinite(analysis.currentPrice) ? analysis.currentPrice : 0,
+      nearestStrike: Number.isFinite(analysis.nearestStrike) ? analysis.nearestStrike : 0,
+      support: Number.isFinite(analysis.support) ? analysis.support : 0,
+      resistance: Number.isFinite(analysis.resistance) ? analysis.resistance : 0,
+      rsi: Number.isFinite(analysis.rsi) ? analysis.rsi : 50,
+      macd: {
+        value: Number.isFinite(analysis.macd.value) ? analysis.macd.value : 0,
+        signal: Number.isFinite(analysis.macd.signal) ? analysis.macd.signal : 0,
+        histogram: Number.isFinite(analysis.macd.histogram) ? analysis.macd.histogram : 0,
+      },
+      vwap: Number.isFinite(analysis.vwap) ? analysis.vwap : 0,
+      bollingerBands: {
+        upper: Number.isFinite(analysis.bollingerBands.upper) ? analysis.bollingerBands.upper : 0,
+        middle: Number.isFinite(analysis.bollingerBands.middle) ? analysis.bollingerBands.middle : 0,
+        lower: Number.isFinite(analysis.bollingerBands.lower) ? analysis.bollingerBands.lower : 0,
+      },
+    };
+
+    res.json(safeAnalysis);
   } catch (error) {
     console.error('Error fetching technicals:', error);
     res.status(500).json({ error: 'Failed to fetch technicals' });
@@ -187,7 +211,22 @@ router.get('/history/:ticker', async (req, res) => {
       take: Number(limit)
     });
 
-    res.json(data.reverse());
+    // Serialize data to handle bigint and null values
+    const serializedData = data.map(item => ({
+      ...item,
+      volume: item.volume ? Number(item.volume) : 0,
+      open: item.open ?? 0,
+      high: item.high ?? 0,
+      low: item.low ?? 0,
+      close: item.close ?? 0,
+      vwap: item.vwap ?? null,
+      rsi: item.rsi ?? null,
+      macd: item.macd ?? null,
+      impliedVolatility: item.impliedVolatility ?? null,
+      historicalVolatility: item.historicalVolatility ?? null,
+    }));
+
+    res.json(serializedData.reverse());
   } catch (error) {
     console.error('Error fetching historical data:', error);
     res.status(500).json({ error: 'Failed to fetch historical data' });
