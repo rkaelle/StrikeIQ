@@ -4,6 +4,7 @@ import Combine
 class SignalStore: ObservableObject {
     @Published var signals: [Signal] = []
     @Published var watchlist: [Signal] = []
+    @Published var activatedSignals: Set<String> = [] // Track activated signal IDs
     @Published var isLoading = false
     @Published var error: String?
     @Published var wsConnected = false
@@ -111,5 +112,69 @@ class SignalStore: ObservableObject {
         selectedSignalType = nil
         selectedDirection = nil
         minConfidence = 0
+    }
+
+    // MARK: - Signal Activation
+
+    func isSignalActivated(_ signalId: String) -> Bool {
+        activatedSignals.contains(signalId)
+    }
+
+    func activateSignal(_ signal: Signal, token: String) {
+        apiService.activateSignal(id: signal.id, token: token)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        print("Error activating signal: \(error)")
+                        self?.error = "Failed to activate signal"
+                    }
+                },
+                receiveValue: { [weak self] response in
+                    self?.activatedSignals.insert(signal.id)
+                    print("Signal activated: \(response.message)")
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func deactivateSignal(_ signal: Signal, token: String) {
+        apiService.deactivateSignal(id: signal.id, token: token)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        print("Error deactivating signal: \(error)")
+                        self?.error = "Failed to deactivate signal"
+                    }
+                },
+                receiveValue: { [weak self] response in
+                    self?.activatedSignals.remove(signal.id)
+                    print("Signal deactivated: \(response.message)")
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func fetchActivatedSignals(token: String) {
+        apiService.fetchActivatedSignals(token: token)
+            .sink(
+                receiveCompletion: { completion in
+                    if case .failure(let error) = completion {
+                        print("Error fetching activated signals: \(error)")
+                    }
+                },
+                receiveValue: { [weak self] signals in
+                    let signalIds = Set(signals.map { $0.id })
+                    self?.activatedSignals = signalIds
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func toggleActivation(_ signal: Signal, token: String) {
+        if isSignalActivated(signal.id) {
+            deactivateSignal(signal, token: token)
+        } else {
+            activateSignal(signal, token: token)
+        }
     }
 }

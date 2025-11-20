@@ -7,6 +7,10 @@ class AuthStore: ObservableObject {
     @Published var isLoading = false
     @Published var error: String?
 
+    var token: String? {
+        UserDefaults.standard.string(forKey: "strikeiq-token")
+    }
+
     private var cancellables = Set<AnyCancellable>()
     private let apiService = APIService.shared
 
