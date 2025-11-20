@@ -4,7 +4,13 @@ import Combine
 class WebSocketService: ObservableObject {
     static let shared = WebSocketService()
 
+    // Configure for production: use wss:// and your backend domain
+    #if DEBUG
     private let wsURL = "ws://localhost:3001"
+    #else
+    private let wsURL = "wss://strikeiq-backend.onrender.com"  // Update with your production WebSocket URL
+    #endif
+
     private var webSocketTask: URLSessionWebSocketTask?
     private var cancellables = Set<AnyCancellable>()
 

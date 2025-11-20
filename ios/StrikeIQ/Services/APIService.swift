@@ -4,7 +4,13 @@ import Combine
 class APIService {
     static let shared = APIService()
 
+    // Configure for production: use https:// and your backend domain
+    #if DEBUG
     private let baseURL = "http://localhost:3001/api"
+    #else
+    private let baseURL = "https://strikeiq-backend.onrender.com/api"  // Update with your production API URL
+    #endif
+
     private var cancellables = Set<AnyCancellable>()
 
     private init() {}

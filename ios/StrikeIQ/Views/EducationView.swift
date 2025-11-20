@@ -149,12 +149,12 @@ struct QuoteCard: View {
     }
 }
 
-enum EducationModule {
+enum EducationModuleType {
     case basics, greeks, psychology, riskManagement, signalTypes
 }
 
 struct ModuleDetailView: View {
-    let module: EducationModule
+    let module: EducationModuleType
 
     var title: String {
         switch module {
