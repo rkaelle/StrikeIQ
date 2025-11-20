@@ -24,20 +24,24 @@ const server = http.createServer(app);
 const allowedOrigins: string[] = [
   'http://localhost:3000',
   'http://localhost:19006',
+  'https://strikeiq.vercel.app',
   process.env.FRONTEND_URL,
 ].filter((origin): origin is string => Boolean(origin));
 
 const io = new SocketServer(server, {
   cors: {
     origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
-    methods: ['GET', 'POST']
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    credentials: true
   }
 });
 
 // Middleware
 app.use(cors({
   origin: allowedOrigins.length > 0 ? allowedOrigins : '*',
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 
