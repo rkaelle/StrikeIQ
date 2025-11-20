@@ -12,7 +12,7 @@ import tradeRoutes from './routes/trades';
 import metricsRoutes from './routes/metrics';
 import educationRoutes from './routes/education';
 import { initializeWebSocket } from './services/websocket';
-import { startSignalEngine } from './services/signalEngine';
+import { initializeInstitutionalSignalEngine } from './services/institutionalSignalEngine';
 import { startDataCollection } from './services/dataCollection';
 
 dotenv.config();
@@ -65,10 +65,10 @@ server.listen(PORT, () => {
   console.log(`🚀 StrikeIQ API running on port ${PORT}`);
 
   // Start background services
-  startSignalEngine(io);
+  initializeInstitutionalSignalEngine(io);
   startDataCollection();
 
-  console.log('📊 Signal Engine started');
+  console.log('🏦 Institutional Signal Engine V2.0 started');
   console.log('📡 Data collection started');
 });
 
