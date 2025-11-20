@@ -300,8 +300,8 @@ struct PnLDataPoint: Identifiable {
 // MARK: - ViewModel
 
 class PerformanceViewModel: ObservableObject {
-    @Published var systemData: SystemMetrics?
-    @Published var userData: UserMetrics?
+    @Published var systemData: SystemMetricsViewModel?
+    @Published var userData: UserMetricsViewModel?
     @Published var byType: [String: TypeStats] = [:]
     @Published var pnlHistory: [PnLDataPoint] = []
     @Published var isLoading = false
@@ -329,7 +329,7 @@ class PerformanceViewModel: ObservableObject {
                     }
                 },
                 receiveValue: { [weak self] response in
-                    self?.systemData = SystemMetrics(
+                    self?.systemData = SystemMetricsViewModel(
                         winRate: response.overall.winRate,
                         avgReturn: response.overall.avgReturn,
                         avgConfidence: response.overall.avgConfidence
@@ -353,7 +353,7 @@ class PerformanceViewModel: ObservableObject {
                     }
                 },
                 receiveValue: { [weak self] response in
-                    self?.userData = UserMetrics(
+                    self?.userData = UserMetricsViewModel(
                         winRate: response.winRate,
                         totalTrades: response.totalTrades,
                         totalPnl: "$\(response.totalPnl)",
@@ -384,13 +384,13 @@ class PerformanceViewModel: ObservableObject {
     }
 }
 
-struct SystemMetrics {
+struct SystemMetricsViewModel {
     let winRate: String
     let avgReturn: String
     let avgConfidence: String
 }
 
-struct UserMetrics {
+struct UserMetricsViewModel {
     let winRate: String
     let totalTrades: Int
     let totalPnl: String

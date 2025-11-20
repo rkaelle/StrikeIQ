@@ -83,10 +83,13 @@ export async function analyzeNewsCatalyst(ticker: string): Promise<NewsCatalyst>
       Math.abs(bestCatalyst.news.sentimentScore || 0)
     );
 
+    // Ensure sentiment is one of the expected types
+    const sentiment = bestCatalyst.news.sentiment as 'BULLISH' | 'BEARISH' | 'NEUTRAL' | null;
+
     return {
       isRealCatalyst: bestCatalyst.isRealCatalyst,
       catalystType: bestCatalyst.catalystType,
-      sentiment: bestCatalyst.news.sentiment || 'NEUTRAL',
+      sentiment: sentiment || 'NEUTRAL',
       sentimentScore: bestCatalyst.news.sentimentScore || 0,
       headline: bestCatalyst.news.title,
       source: bestCatalyst.news.source,
@@ -107,7 +110,7 @@ export async function analyzeNewsCatalyst(ticker: string): Promise<NewsCatalyst>
 function analyzeCatalystType(
   title: string,
   summary: string
-): { isRealCatalyst: boolean; catalystType: string } {
+): { isRealCatalyst: boolean; catalystType: 'EARNINGS' | 'FDA' | 'ANALYST' | 'MACRO' | 'SEC_FILING' | 'MERGER' | 'GUIDANCE' | 'NONE' } {
   const combined = `${title} ${summary}`.toLowerCase();
 
   // EARNINGS
