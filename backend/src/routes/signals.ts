@@ -132,6 +132,201 @@ router.get('/top/performers', async (req, res) => {
   }
 });
 
+// Get user's activated signals
+router.get('/activated', authMiddleware, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Get all activated signal IDs for this user
+    const activations = await prisma.userSignalActivation.findMany({
+      where: {
+        userId,
+        activated: true
+      },
+      include: {
+        signal: {
+          include: {
+            accuracy: true
+          }
+        }
+      },
+      orderBy: {
+        activatedAt: 'desc'
+      }
+    });
+
+    // Extract signals from activations
+    const signals = activations.map(activation => ({
+      ...activation.signal,
+      activatedAt: activation.activatedAt
+    }));
+
+    res.json(signals);
+  } catch (error) {
+    console.error('Error fetching activated signals:', error);
+    res.status(500).json({ error: 'Failed to fetch activated signals' });
+  }
+});
+
+// Activate a signal for the authenticated user
+router.post('/:id/activate', authMiddleware, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const signalId = req.params.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Check if signal exists
+    const signal = await prisma.signal.findUnique({
+      where: { id: signalId }
+    });
+
+    if (!signal) {
+      return res.status(404).json({ error: 'Signal not found' });
+    }
+
+    // Check if activation already exists
+    const existingActivation = await prisma.userSignalActivation.findUnique({
+      where: {
+        userId_signalId: {
+          userId,
+          signalId
+        }
+      }
+    });
+
+    let activation;
+
+    if (existingActivation) {
+      // Update existing activation
+      activation = await prisma.userSignalActivation.update({
+        where: {
+          userId_signalId: {
+            userId,
+            signalId
+          }
+        },
+        data: {
+          activated: true,
+          activatedAt: new Date(),
+          deactivatedAt: null
+        },
+        include: {
+          signal: true
+        }
+      });
+    } else {
+      // Create new activation
+      activation = await prisma.userSignalActivation.create({
+        data: {
+          userId,
+          signalId,
+          activated: true,
+          activatedAt: new Date()
+        },
+        include: {
+          signal: true
+        }
+      });
+    }
+
+    res.json({
+      message: 'Signal activated successfully',
+      activation
+    });
+  } catch (error) {
+    console.error('Error activating signal:', error);
+    res.status(500).json({ error: 'Failed to activate signal' });
+  }
+});
+
+// Deactivate a signal for the authenticated user
+router.post('/:id/deactivate', authMiddleware, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const signalId = req.params.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    // Check if activation exists
+    const existingActivation = await prisma.userSignalActivation.findUnique({
+      where: {
+        userId_signalId: {
+          userId,
+          signalId
+        }
+      }
+    });
+
+    if (!existingActivation) {
+      return res.status(404).json({ error: 'Signal activation not found' });
+    }
+
+    // Update activation to deactivated
+    const activation = await prisma.userSignalActivation.update({
+      where: {
+        userId_signalId: {
+          userId,
+          signalId
+        }
+      },
+      data: {
+        activated: false,
+        deactivatedAt: new Date()
+      },
+      include: {
+        signal: true
+      }
+    });
+
+    res.json({
+      message: 'Signal deactivated successfully',
+      activation
+    });
+  } catch (error) {
+    console.error('Error deactivating signal:', error);
+    res.status(500).json({ error: 'Failed to deactivate signal' });
+  }
+});
+
+// Check if a signal is activated for the user
+router.get('/:id/activation-status', authMiddleware, async (req, res) => {
+  try {
+    const userId = (req as any).userId;
+    const signalId = req.params.id;
+
+    if (!userId) {
+      return res.status(401).json({ error: 'User not authenticated' });
+    }
+
+    const activation = await prisma.userSignalActivation.findUnique({
+      where: {
+        userId_signalId: {
+          userId,
+          signalId
+        }
+      }
+    });
+
+    res.json({
+      isActivated: activation?.activated || false,
+      activatedAt: activation?.activatedAt,
+      deactivatedAt: activation?.deactivatedAt
+    });
+  } catch (error) {
+    console.error('Error checking activation status:', error);
+    res.status(500).json({ error: 'Failed to check activation status' });
+  }
+});
+
 // Debug: Get all signals including inactive
 router.get('/debug/all', async (req, res) => {
   try {

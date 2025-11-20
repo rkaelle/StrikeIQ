@@ -57,6 +57,7 @@ interface SystemMetrics {
 interface SignalStore {
   signals: Signal[]
   watchlist: Signal[]
+  activatedSignals: Set<string>
   isLoading: boolean
   error: string | null
   filters: Filters
@@ -74,11 +75,17 @@ interface SignalStore {
   rejectSignal: (signalId: string) => void
   initWebSocket: () => void
   addSignal: (signal: Signal) => void
+  isSignalActivated: (signalId: string) => boolean
+  activateSignal: (signalId: string) => Promise<void>
+  deactivateSignal: (signalId: string) => Promise<void>
+  toggleActivation: (signalId: string) => Promise<void>
+  fetchActivatedSignals: () => Promise<void>
 }
 
 export const useSignalStore = create<SignalStore>((set, get) => ({
   signals: [],
   watchlist: [],
+  activatedSignals: new Set<string>(),
   isLoading: false,
   error: null,
   metrics: null,
@@ -195,6 +202,52 @@ export const useSignalStore = create<SignalStore>((set, get) => ({
     set((state) => ({
       signals: [signal, ...state.signals]
     }))
+  },
+
+  isSignalActivated: (signalId) => {
+    return get().activatedSignals.has(signalId)
+  },
+
+  activateSignal: async (signalId) => {
+    try {
+      await signalService.activate(signalId)
+      set((state) => ({
+        activatedSignals: new Set(state.activatedSignals).add(signalId)
+      }))
+    } catch (error) {
+      console.error('Error activating signal:', error)
+    }
+  },
+
+  deactivateSignal: async (signalId) => {
+    try {
+      await signalService.deactivate(signalId)
+      set((state) => {
+        const newActivated = new Set(state.activatedSignals)
+        newActivated.delete(signalId)
+        return { activatedSignals: newActivated }
+      })
+    } catch (error) {
+      console.error('Error deactivating signal:', error)
+    }
+  },
+
+  toggleActivation: async (signalId) => {
+    if (get().isSignalActivated(signalId)) {
+      await get().deactivateSignal(signalId)
+    } else {
+      await get().activateSignal(signalId)
+    }
+  },
+
+  fetchActivatedSignals: async () => {
+    try {
+      const activatedSignals = await signalService.getActivated()
+      const signalIds = new Set(activatedSignals.map((s: Signal) => s.id))
+      set({ activatedSignals: signalIds })
+    } catch (error) {
+      console.error('Error fetching activated signals:', error)
+    }
   }
 }))
 

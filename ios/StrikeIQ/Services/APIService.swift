@@ -46,6 +46,54 @@ class APIService {
         fetch(URL(string: "\(baseURL)/signals/\(id)")!)
     }
 
+    func fetchActivatedSignals(token: String) -> AnyPublisher<[Signal], Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/signals/activated")!)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: [Signal].self, decoder: jsonDecoder)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func activateSignal(id: String, token: String) -> AnyPublisher<SignalActivationResponse, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/signals/\(id)/activate")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: SignalActivationResponse.self, decoder: jsonDecoder)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func deactivateSignal(id: String, token: String) -> AnyPublisher<SignalActivationResponse, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/signals/\(id)/deactivate")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: SignalActivationResponse.self, decoder: jsonDecoder)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func checkActivationStatus(signalId: String, token: String) -> AnyPublisher<SignalActivationStatus, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/signals/\(signalId)/activation-status")!)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: SignalActivationStatus.self, decoder: jsonDecoder)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
     // MARK: - Market Data
 
     func fetchQuote(ticker: String) -> AnyPublisher<Quote, Error> {
@@ -242,4 +290,24 @@ struct GlossaryTerm: Codable, Identifiable {
     let term: String
     let definition: String
     let category: String
+}
+
+struct SignalActivationResponse: Codable {
+    let message: String
+    let activation: SignalActivation
+}
+
+struct SignalActivation: Codable {
+    let id: String
+    let userId: String
+    let signalId: String
+    let activated: Bool
+    let activatedAt: Date?
+    let deactivatedAt: Date?
+}
+
+struct SignalActivationStatus: Codable {
+    let isActivated: Bool
+    let activatedAt: Date?
+    let deactivatedAt: Date?
 }

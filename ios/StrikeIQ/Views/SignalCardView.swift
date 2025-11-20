@@ -3,10 +3,14 @@ import SwiftUI
 struct SignalCardView: View {
     let signal: Signal
     @EnvironmentObject var signalStore: SignalStore
+    @EnvironmentObject var authStore: AuthStore
     @State private var isExpanded = false
     @State private var showConfirmation = false
 
     private var isBullish: Bool { signal.direction == .call }
+    private var isActivated: Bool {
+        signalStore.isSignalActivated(signal.id)
+    }
 
     var body: some View {
         VStack(spacing: 0) {
@@ -155,7 +159,26 @@ struct SignalCardView: View {
                     }
                 }
 
-                // Action Buttons
+                // Activation Button (Primary Action)
+                Button {
+                    if let token = authStore.token {
+                        signalStore.toggleActivation(signal, token: token)
+                    }
+                } label: {
+                    HStack {
+                        Image(systemName: isActivated ? "checkmark.circle.fill" : "circle")
+                            .font(.headline)
+                        Text(isActivated ? "Activated" : "Activate Signal")
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 12)
+                    .background(isActivated ? Color("AppPrimary") : Color("SurfaceLight"))
+                    .foregroundColor(isActivated ? .black : .white)
+                    .cornerRadius(8)
+                }
+
+                // Secondary Action Buttons
                 HStack(spacing: 8) {
                     Button {
                         signalStore.rejectSignal(signal.id)
