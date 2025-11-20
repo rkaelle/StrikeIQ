@@ -70,7 +70,7 @@ export async function analyzeVolatilityRegime(ticker: string): Promise<Volatilit
     });
 
     const rvol = recentVolume && avgVolume._avg.volume
-      ? recentVolume.volume / Number(avgVolume._avg.volume)
+      ? Number(recentVolume.volume) / Number(avgVolume._avg.volume)
       : 1.0;
 
     // 4. Determine volatility regime
