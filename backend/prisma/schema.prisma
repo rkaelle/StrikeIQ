@@ -19,6 +19,8 @@ model User {
   trades        UserTrade[]
   settings      UserSettings?
   signalActivations UserSignalActivation[]
+  actions       UserAction[]
+  preferences   UserPreferences?
 }
 
 model UserSettings {
@@ -246,4 +248,33 @@ model SystemMetrics {
   sharpeRatio     Float?
 
   createdAt       DateTime @default(now())
+}
+
+model UserAction {
+  id         String   @id @default(cuid())
+  userId     String
+  action     String   // "signal_activated", "signal_viewed", "trade_entered", etc.
+  entityId   String?  // ID of signal/trade/etc
+  metadata   Json?    // Additional context
+  deviceType String   // "web", "ios", "android", "extension"
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+  @@index([action])
+  @@index([deviceType])
+}
+
+model UserPreferences {
+  id                    String   @id @default(cuid())
+  userId                String   @unique
+  defaultFilters        Json?    // Saved filter preferences
+  notificationSettings  Json?    // Notification preferences
+  watchlistView         String?  // "list", "grid", "compact"
+  theme                 String?  // "light", "dark", "auto"
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
