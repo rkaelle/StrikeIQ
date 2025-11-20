@@ -20,6 +20,10 @@
 		011 /* DisclaimerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 111 /* DisclaimerView.swift */; };
 		012 /* EducationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 112 /* EducationView.swift */; };
 		013 /* APIService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 113 /* APIService.swift */; };
+		014 /* WebSocketService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 114 /* WebSocketService.swift */; };
+		015 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115 /* AuthStore.swift */; };
+		016 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116 /* LoginView.swift */; };
+		017 /* StockDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117 /* StockDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -37,6 +41,10 @@
 		111 /* DisclaimerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DisclaimerView.swift; sourceTree = "<group>"; };
 		112 /* EducationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EducationView.swift; sourceTree = "<group>"; };
 		113 /* APIService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = APIService.swift; sourceTree = "<group>"; };
+		114 /* WebSocketService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WebSocketService.swift; sourceTree = "<group>"; };
+		115 /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
+		116 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
+		117 /* StockDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -97,6 +105,8 @@
 				110 /* PerformanceView.swift */,
 				111 /* DisclaimerView.swift */,
 				112 /* EducationView.swift */,
+				116 /* LoginView.swift */,
+				117 /* StockDetailView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -106,6 +116,7 @@
 			children = (
 				106 /* SignalStore.swift */,
 				107 /* UserStore.swift */,
+				115 /* AuthStore.swift */,
 			);
 			path = Stores;
 			sourceTree = "<group>";
@@ -114,6 +125,7 @@
 			isa = PBXGroup;
 			children = (
 				113 /* APIService.swift */,
+				114 /* WebSocketService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -199,6 +211,10 @@
 				011 /* DisclaimerView.swift in Sources */,
 				012 /* EducationView.swift in Sources */,
 				013 /* APIService.swift in Sources */,
+				014 /* WebSocketService.swift in Sources */,
+				015 /* AuthStore.swift in Sources */,
+				016 /* LoginView.swift in Sources */,
+				017 /* StockDetailView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
