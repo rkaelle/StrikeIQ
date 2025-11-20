@@ -10,6 +10,8 @@ import ChartComponent from '@/components/ChartComponent'
 import DisclaimerModal from '@/components/DisclaimerModal'
 import MarketOverview from '@/components/MarketOverview'
 import SignalFilters from '@/components/SignalFilters'
+import StocksBrowser from '@/components/StocksBrowser'
+import EducationCenter from '@/components/EducationCenter'
 import { useSignalStore } from '@/store/signalStore'
 
 export default function Home() {
@@ -83,13 +85,7 @@ export default function Home() {
 
             {activeTab === 'performance' && <PerformanceTracker />}
 
-            {activeTab === 'education' && (
-              <div className="bg-surface rounded-lg border border-border p-6">
-                <h2 className="text-xl font-bold mb-4">Education Center</h2>
-                <p className="text-gray-400">Learn about options trading, Greeks, risk management, and more.</p>
-                {/* Education content will be rendered here */}
-              </div>
-            )}
+            {activeTab === 'education' && <EducationCenter />}
           </div>
 
           {/* Right Column - Chart & Quick Stats */}
@@ -130,6 +126,9 @@ export default function Home() {
                 </div>
               </div>
             </div>
+
+            {/* Stock Browser */}
+            <StocksBrowser />
           </div>
         </div>
       </div>

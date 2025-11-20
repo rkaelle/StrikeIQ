@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { TrendingUp, TrendingDown } from 'lucide-react'
+import { marketService } from '@/services/api'
 
 interface MarketData {
   ticker: string
@@ -11,12 +12,63 @@ interface MarketData {
 }
 
 export default function MarketOverview() {
-  const [marketData, setMarketData] = useState<MarketData[]>([
-    { ticker: 'SPY', price: 452.30, change: 2.45, changePercent: 0.54 },
-    { ticker: 'QQQ', price: 382.15, change: 4.20, changePercent: 1.11 },
-    { ticker: 'VIX', price: 18.50, change: -0.80, changePercent: -4.14 },
-    { ticker: 'DIA', price: 385.60, change: 1.30, changePercent: 0.34 },
-  ])
+  const [marketData, setMarketData] = useState<MarketData[]>([])
+  const [isLoading, setIsLoading] = useState(true)
+  const [marketStatus, setMarketStatus] = useState('Loading...')
+
+  useEffect(() => {
+    fetchMarketData()
+    // Refresh every 60 seconds
+    const interval = setInterval(fetchMarketData, 60000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const fetchMarketData = async () => {
+    const tickers = ['SPY', 'QQQ', 'VIX', 'DIA']
+    const data: MarketData[] = []
+
+    for (const ticker of tickers) {
+      try {
+        const quote = await marketService.getQuote(ticker)
+        data.push({
+          ticker,
+          price: quote.price || quote.close || 0,
+          change: quote.change || 0,
+          changePercent: quote.changePercent || 0
+        })
+      } catch (error) {
+        // Use placeholder if API fails
+        data.push({
+          ticker,
+          price: 0,
+          change: 0,
+          changePercent: 0
+        })
+      }
+    }
+
+    setMarketData(data)
+    setIsLoading(false)
+
+    // Check market status
+    const now = new Date()
+    const hour = now.getUTCHours() - 5 // EST
+    const day = now.getDay()
+    const isWeekday = day >= 1 && day <= 5
+    const isMarketHours = hour >= 9.5 && hour < 16
+
+    setMarketStatus(isWeekday && isMarketHours ? 'Market Open' : 'Market Closed')
+  }
+
+  if (isLoading) {
+    return (
+      <div className="bg-surface rounded-lg border border-border p-3">
+        <div className="flex items-center justify-center py-2">
+          <div className="animate-pulse text-gray-400">Loading market data...</div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-surface rounded-lg border border-border p-3">
@@ -24,23 +76,29 @@ export default function MarketOverview() {
         {marketData.map((data) => (
           <div key={data.ticker} className="flex items-center gap-3 min-w-fit">
             <span className="font-semibold">{data.ticker}</span>
-            <span className="font-mono">${data.price.toFixed(2)}</span>
-            <div className={`flex items-center gap-1 text-sm ${
-              data.change >= 0 ? 'text-bullish' : 'text-bearish'
-            }`}>
-              {data.change >= 0 ? (
-                <TrendingUp size={14} />
-              ) : (
-                <TrendingDown size={14} />
-              )}
-              <span>{data.change >= 0 ? '+' : ''}{data.changePercent.toFixed(2)}%</span>
-            </div>
+            <span className="font-mono">
+              {data.price > 0 ? `$${data.price.toFixed(2)}` : '--'}
+            </span>
+            {data.price > 0 && (
+              <div className={`flex items-center gap-1 text-sm ${
+                data.change >= 0 ? 'text-bullish' : 'text-bearish'
+              }`}>
+                {data.change >= 0 ? (
+                  <TrendingUp size={14} />
+                ) : (
+                  <TrendingDown size={14} />
+                )}
+                <span>{data.change >= 0 ? '+' : ''}{data.changePercent.toFixed(2)}%</span>
+              </div>
+            )}
           </div>
         ))}
 
         <div className="flex items-center gap-2 ml-auto text-sm">
-          <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
-          <span className="text-gray-400">Market Open</span>
+          <span className={`w-2 h-2 rounded-full ${
+            marketStatus === 'Market Open' ? 'bg-green-500 animate-pulse' : 'bg-gray-500'
+          }`}></span>
+          <span className="text-gray-400">{marketStatus}</span>
         </div>
       </div>
     </div>

@@ -56,9 +56,34 @@ export default function ChartComponent({ ticker }: ChartComponentProps) {
 
     seriesRef.current = candlestickSeries
 
-    // Generate mock data
-    const data = generateMockCandleData()
-    candlestickSeries.setData(data)
+    // Fetch real data from API
+    const fetchChartData = async () => {
+      try {
+        const historyData = await fetch(
+          `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/market/history/${ticker}?limit=100`
+        ).then(res => res.json())
+
+        if (historyData && historyData.length > 0) {
+          const chartData = historyData.map((d: any) => ({
+            time: new Date(d.timestamp).toISOString().split('T')[0],
+            open: d.open,
+            high: d.high,
+            low: d.low,
+            close: d.close
+          }))
+          candlestickSeries.setData(chartData)
+        } else {
+          // Fallback to generated data if API fails
+          candlestickSeries.setData(generateMockCandleData())
+        }
+      } catch (error) {
+        // Fallback to generated data
+        candlestickSeries.setData(generateMockCandleData())
+      }
+    }
+
+    fetchChartData()
+    const data = generateMockCandleData() // For price lines
 
     // Add buy zone marker
     const buyZonePrice = data[data.length - 1].close * 0.98

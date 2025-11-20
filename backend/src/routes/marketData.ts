@@ -4,9 +4,39 @@ import { getOptionsChain } from '../services/analysis/flowAnalysis';
 import { analyzeTechnicals } from '../services/analysis/technicalAnalysis';
 import { analyzeVolatility, getVIXData } from '../services/analysis/volatilityAnalysis';
 import { analyzeSentiment, fetchNews } from '../services/analysis/sentimentAnalysis';
+import { WATCHED_TICKERS } from '../services/dataCollection';
 
 const router = Router();
 const prisma = new PrismaClient();
+
+// Get all watched stocks with latest data
+router.get('/stocks', async (req, res) => {
+  try {
+    const stocks = await Promise.all(
+      WATCHED_TICKERS.map(async (ticker) => {
+        const latestData = await prisma.marketData.findFirst({
+          where: { ticker },
+          orderBy: { timestamp: 'desc' }
+        });
+
+        return {
+          ticker,
+          price: latestData?.close || 0,
+          change: latestData ? latestData.close - latestData.open : 0,
+          changePercent: latestData ? ((latestData.close - latestData.open) / latestData.open) * 100 : 0,
+          volume: latestData ? Number(latestData.volume) : 0,
+          rsi: latestData?.rsi || 50,
+          hasData: !!latestData
+        };
+      })
+    );
+
+    res.json(stocks.filter(s => s.hasData || true)); // Return all, mark which have data
+  } catch (error) {
+    console.error('Error fetching stocks:', error);
+    res.status(500).json({ error: 'Failed to fetch stocks' });
+  }
+});
 
 // Get quote for ticker
 router.get('/quote/:ticker', async (req, res) => {

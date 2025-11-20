@@ -7,9 +7,36 @@ const prisma = new PrismaClient();
 // Rate limiting helper - delay between API calls
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
+// Extended ticker list for comprehensive signal scanning
+export const WATCHED_TICKERS = [
+  // Major ETFs
+  'SPY', 'QQQ', 'IWM', 'DIA',
+  // Mega Cap Tech
+  'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'META', 'NVDA', 'TSLA',
+  // Semiconductors
+  'AMD', 'INTC', 'MU', 'QCOM', 'AVGO', 'TXN', 'AMAT', 'LRCX',
+  // Software & Cloud
+  'CRM', 'ORCL', 'ADBE', 'NOW', 'SNOW', 'PLTR', 'NET', 'DDOG',
+  // Financials
+  'JPM', 'BAC', 'GS', 'MS', 'C', 'WFC', 'BLK', 'SCHW',
+  // Healthcare
+  'UNH', 'JNJ', 'PFE', 'ABBV', 'MRK', 'LLY', 'TMO', 'ABT',
+  // Consumer
+  'WMT', 'COST', 'HD', 'NKE', 'SBUX', 'MCD', 'DIS', 'NFLX',
+  // Energy
+  'XOM', 'CVX', 'COP', 'SLB', 'OXY',
+  // EV & Clean Energy
+  'RIVN', 'LCID', 'NIO', 'PLUG', 'ENPH',
+  // Meme/High Volatility
+  'GME', 'AMC', 'COIN', 'HOOD', 'SOFI',
+  // Industrials
+  'BA', 'CAT', 'DE', 'GE', 'HON', 'UPS', 'FDX'
+];
+
 // Fetch and store market data from Polygon.io
 async function fetchMarketData() {
-  const tickers = ['SPY', 'QQQ', 'AAPL', 'TSLA', 'NVDA', 'AMD', 'AMZN', 'META', 'GOOGL', 'MSFT'];
+  // Rotate through tickers to avoid rate limits
+  const tickers = WATCHED_TICKERS.slice(0, 15);
 
   for (const ticker of tickers) {
     try {
