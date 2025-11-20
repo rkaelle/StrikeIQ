@@ -36,8 +36,8 @@ router.get('/system', async (req, res) => {
         wins: typeWins,
         losses: typeLosses,
         winRate: typeWins + typeLosses > 0
-          ? ((typeWins / (typeWins + typeLosses)) * 100).toFixed(1)
-          : 0
+          ? `${((typeWins / (typeWins + typeLosses)) * 100).toFixed(1)}%`
+          : '0%'
       };
 
       return acc;
@@ -66,10 +66,10 @@ router.get('/system', async (req, res) => {
         wins,
         losses,
         pending,
-        winRate: wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : 0,
-        avgReturn: avgReturn.toFixed(2),
-        avgConfidence: avgConfidence.toFixed(1),
-        avgRiskReward: avgRiskReward.toFixed(2)
+        winRate: wins + losses > 0 ? `${((wins / (wins + losses)) * 100).toFixed(1)}%` : '0%',
+        avgReturn: `${avgReturn.toFixed(2)}%`,
+        avgConfidence: `${avgConfidence.toFixed(1)}%`,
+        avgRiskReward: `${avgRiskReward.toFixed(2)}x`
       },
       byType
     });
@@ -133,17 +133,17 @@ router.get('/user/:userId', async (req, res) => {
       closedTrades: closedTrades.length,
       wins,
       losses,
-      winRate: wins + losses > 0 ? ((wins / (wins + losses)) * 100).toFixed(1) : 0,
+      winRate: wins + losses > 0 ? `${((wins / (wins + losses)) * 100).toFixed(1)}%` : '0%',
       totalPnl: totalPnl.toFixed(2),
-      avgPnl: closedTrades.length > 0 ? (totalPnl / closedTrades.length).toFixed(2) : 0,
-      currentStreak: `${currentStreak} ${streakType.toLowerCase()}s`,
+      avgPnl: closedTrades.length > 0 ? `${(totalPnl / closedTrades.length).toFixed(2)}` : '0',
+      currentStreak: `${currentStreak} ${streakType.toLowerCase()}${currentStreak !== 1 ? 's' : ''}`,
       bestTrade: bestTrade ? {
         ticker: bestTrade.ticker,
-        pnl: bestTrade.pnl?.toFixed(2)
+        pnl: `${bestTrade.pnl?.toFixed(2) || '0'}`
       } : null,
       worstTrade: worstTrade ? {
         ticker: worstTrade.ticker,
-        pnl: worstTrade.pnl?.toFixed(2)
+        pnl: `${worstTrade.pnl?.toFixed(2) || '0'}`
       } : null
     });
   } catch (error) {
@@ -172,10 +172,12 @@ router.get('/leaderboard', async (req, res) => {
         userId: user.id,
         name: user.name || 'Anonymous',
         totalTrades: total,
-        winRate: total > 0 ? ((wins / total) * 100).toFixed(1) : 0,
-        totalPnl: totalPnl.toFixed(2)
+        winRate: total > 0 ? `${((wins / total) * 100).toFixed(1)}%` : '0%',
+        totalPnl: totalPnl.toFixed(2),
+        totalPnlNumeric: totalPnl // For sorting
       };
-    }).sort((a, b) => Number(b.totalPnl) - Number(a.totalPnl));
+    }).sort((a, b) => b.totalPnlNumeric - a.totalPnlNumeric)
+      .map(({ totalPnlNumeric, ...rest }) => rest); // Remove sorting helper
 
     res.json(leaderboard.slice(0, 10));
   } catch (error) {
