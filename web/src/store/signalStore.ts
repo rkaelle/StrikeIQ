@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { signalService, watchlistService, metricsService, initializeWebSocket, authService } from '@/services/api'
+import { signalService, watchlistService, watchlistFolderService, metricsService, initializeWebSocket, authService } from '@/services/api'
 
 export interface Signal {
   id: string
@@ -54,10 +54,22 @@ interface SystemMetrics {
   byType: Record<string, { total: number; wins: number; losses: number; winRate: string }>
 }
 
+export interface WatchlistFolder {
+  id: string
+  userId: string
+  name: string
+  color?: string
+  order: number
+  createdAt: string
+  updatedAt: string
+  itemCount?: number
+}
+
 interface SignalStore {
   signals: Signal[]
   watchlist: Signal[]
   activatedSignals: Set<string>
+  watchlistFolders: WatchlistFolder[]
   isLoading: boolean
   error: string | null
   filters: Filters
@@ -80,12 +92,20 @@ interface SignalStore {
   deactivateSignal: (signalId: string) => Promise<void>
   toggleActivation: (signalId: string) => Promise<void>
   fetchActivatedSignals: () => Promise<void>
+
+  // Watchlist folders
+  fetchWatchlistFolders: () => Promise<void>
+  createFolder: (name: string, color?: string) => Promise<void>
+  updateFolder: (id: string, name?: string, color?: string) => Promise<void>
+  deleteFolder: (id: string) => Promise<void>
+  moveToFolder: (folderId: string, watchlistItemId: string) => Promise<void>
 }
 
 export const useSignalStore = create<SignalStore>((set, get) => ({
   signals: [],
   watchlist: [],
   activatedSignals: new Set<string>(),
+  watchlistFolders: [],
   isLoading: false,
   error: null,
   metrics: null,
@@ -247,6 +267,60 @@ export const useSignalStore = create<SignalStore>((set, get) => ({
       set({ activatedSignals: signalIds })
     } catch (error) {
       console.error('Error fetching activated signals:', error)
+    }
+  },
+
+  fetchWatchlistFolders: async () => {
+    try {
+      const folders = await watchlistFolderService.getAll()
+      set({ watchlistFolders: folders })
+    } catch (error) {
+      console.error('Error fetching watchlist folders:', error)
+    }
+  },
+
+  createFolder: async (name: string, color?: string) => {
+    try {
+      const response = await watchlistFolderService.create(name, color)
+      set((state) => ({
+        watchlistFolders: [...state.watchlistFolders, response.folder].sort((a, b) => a.order - b.order)
+      }))
+    } catch (error) {
+      console.error('Error creating folder:', error)
+    }
+  },
+
+  updateFolder: async (id: string, name?: string, color?: string) => {
+    try {
+      const response = await watchlistFolderService.update(id, { name, color })
+      set((state) => ({
+        watchlistFolders: state.watchlistFolders.map((f) =>
+          f.id === id ? response.folder : f
+        )
+      }))
+    } catch (error) {
+      console.error('Error updating folder:', error)
+    }
+  },
+
+  deleteFolder: async (id: string) => {
+    try {
+      await watchlistFolderService.delete(id)
+      set((state) => ({
+        watchlistFolders: state.watchlistFolders.filter((f) => f.id !== id)
+      }))
+    } catch (error) {
+      console.error('Error deleting folder:', error)
+    }
+  },
+
+  moveToFolder: async (folderId: string, watchlistItemId: string) => {
+    try {
+      await watchlistFolderService.moveItem(folderId, watchlistItemId)
+      // Refresh folders to update item counts
+      get().fetchWatchlistFolders()
+    } catch (error) {
+      console.error('Error moving item to folder:', error)
     }
   }
 }))

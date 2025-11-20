@@ -1,12 +1,20 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
-import { Eye, Trash2, TrendingUp, TrendingDown, Bell, BellOff } from 'lucide-react'
+import { Eye, Trash2, TrendingUp, TrendingDown, Bell, Folder, Settings } from 'lucide-react'
 import { useSignalStore } from '@/store/signalStore'
+import WatchlistFolderManagement from './WatchlistFolderManagement'
 
 export default function WatchlistPanel() {
-  const { watchlist, removeFromWatchlist } = useSignalStore()
+  const { watchlist, watchlistFolders, fetchWatchlistFolders, removeFromWatchlist } = useSignalStore()
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+  const [showFolderManagement, setShowFolderManagement] = useState(false)
+
+  useEffect(() => {
+    fetchWatchlistFolders()
+  }, [])
 
   if (watchlist.length === 0) {
     return (
@@ -25,8 +33,56 @@ export default function WatchlistPanel() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h2 className="text-xl font-bold">Watchlist</h2>
-        <span className="text-sm text-gray-400">{watchlist.length} signals</span>
+        <div className="flex items-center gap-2">
+          <span className="text-sm text-gray-400">{watchlist.length} signals</span>
+          <button
+            onClick={() => setShowFolderManagement(true)}
+            className="p-2 hover:bg-surface-light rounded-lg transition-colors"
+            title="Manage Folders"
+          >
+            <Settings size={16} />
+          </button>
+        </div>
       </div>
+
+      {/* Folder Chips */}
+      {watchlistFolders.length > 0 && (
+        <div className="flex gap-2 flex-wrap">
+          <button
+            onClick={() => setSelectedFolderId(null)}
+            className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors ${
+              selectedFolderId === null
+                ? 'bg-primary text-white'
+                : 'bg-surface-light text-gray-400 hover:bg-surface-lighter'
+            }`}
+          >
+            All
+          </button>
+          {watchlistFolders.map((folder) => (
+            <button
+              key={folder.id}
+              onClick={() => setSelectedFolderId(folder.id)}
+              className={`px-3 py-1.5 rounded-full text-sm font-medium transition-colors flex items-center gap-1.5 ${
+                selectedFolderId === folder.id
+                  ? 'text-white'
+                  : 'bg-surface-light hover:bg-surface-lighter'
+              }`}
+              style={{
+                backgroundColor: selectedFolderId === folder.id ? folder.color || '#3B82F6' : undefined,
+                color: selectedFolderId === folder.id ? 'white' : undefined,
+              }}
+            >
+              <Folder size={14} />
+              {folder.name}
+              {folder.itemCount ? (
+                <span className="px-1.5 py-0.5 rounded text-xs bg-black/20">
+                  {folder.itemCount}
+                </span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      )}
 
       <AnimatePresence>
         {watchlist.map((signal) => (
@@ -105,6 +161,12 @@ export default function WatchlistPanel() {
           </motion.div>
         ))}
       </AnimatePresence>
+
+      {/* Folder Management Modal */}
+      <WatchlistFolderManagement
+        isOpen={showFolderManagement}
+        onClose={() => setShowFolderManagement(false)}
+      />
     </div>
   )
 }
