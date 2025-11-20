@@ -33,7 +33,7 @@ struct PerformanceView: View {
                             .multilineTextAlignment(.center)
                             .padding(.horizontal)
                         Button("Retry") {
-                            viewModel.fetchData(userId: authStore.currentUser?.id, days: getDays(selectedPeriod))
+                            viewModel.fetchData(userId: authStore.user?.id, days: getDays(selectedPeriod))
                         }
                         .padding(.horizontal, 24)
                         .padding(.vertical, 12)
@@ -49,7 +49,7 @@ struct PerformanceView: View {
                                 ForEach(periods, id: \.self) { period in
                                     Button {
                                         selectedPeriod = period
-                                        viewModel.fetchData(userId: authStore.currentUser?.id, days: getDays(period))
+                                        viewModel.fetchData(userId: authStore.user?.id, days: getDays(period))
                                     } label: {
                                         Text(period)
                                             .font(.caption)
@@ -248,7 +248,7 @@ struct PerformanceView: View {
             .background(Color.black)
             .navigationTitle("Performance")
             .onAppear {
-                viewModel.fetchData(userId: authStore.currentUser?.id, days: getDays(selectedPeriod))
+                viewModel.fetchData(userId: authStore.user?.id, days: getDays(selectedPeriod))
             }
         }
     }
