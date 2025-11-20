@@ -3,6 +3,7 @@ import SwiftUI
 @main
 struct StrikeIQApp: App {
     @StateObject private var signalStore = SignalStore()
+    @StateObject private var userStore = UserStore()
     @StateObject private var authStore = AuthStore()
     @AppStorage("hasAcceptedDisclaimer") private var hasAcceptedDisclaimer = false
 
@@ -11,6 +12,7 @@ struct StrikeIQApp: App {
             if hasAcceptedDisclaimer {
                 ContentView()
                     .environmentObject(signalStore)
+                    .environmentObject(userStore)
                     .environmentObject(authStore)
                     .preferredColorScheme(.dark)
             } else {
