@@ -21,6 +21,7 @@ model User {
   signalActivations UserSignalActivation[]
   actions       UserAction[]
   preferences   UserPreferences?
+  watchlistFolders WatchlistFolder[]
 }
 
 model UserSettings {
@@ -101,11 +102,30 @@ model Watchlist {
   user      User     @relation(fields: [userId], references: [id])
   signalId  String
   signal    Signal   @relation(fields: [signalId], references: [id])
+  folderId  String?
+  folder    WatchlistFolder? @relation(fields: [folderId], references: [id])
   notes     String?
   alertSet  Boolean  @default(false)
   createdAt DateTime @default(now())
 
   @@unique([userId, signalId])
+  @@index([userId, folderId])
+}
+
+model WatchlistFolder {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  color     String?  // Optional color coding (hex value)
+  order     Int      @default(0) // Display order
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user  User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items Watchlist[]
+
+  @@index([userId])
+  @@index([userId, order])
 }
 
 model UserSignalActivation {
@@ -277,4 +297,104 @@ model UserPreferences {
   updatedAt             DateTime @updatedAt
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model BacktestRun {
+  id              String   @id @default(cuid())
+  name            String
+  description     String?
+  startDate       DateTime
+  endDate         DateTime
+  initialCapital  Float    @default(10000)
+  positionSize    Float    @default(1000)
+
+  // Filters
+  signalTypes     Json?    // Array of signal types to include
+  minConfidence   Float?   // Minimum confidence threshold
+  maxRisk         String?  // Maximum risk level
+
+  // Results
+  totalTrades     Int      @default(0)
+  winningTrades   Int      @default(0)
+  losingTrades    Int      @default(0)
+  winRate         Float?
+  totalReturn     Float?
+  totalPnL        Float?
+  avgReturn       Float?
+  maxDrawdown     Float?
+  sharpeRatio     Float?
+
+  status          String   @default("PENDING") // PENDING, RUNNING, COMPLETED, FAILED
+  errorMessage    String?
+
+  createdAt       DateTime @default(now())
+  completedAt     DateTime?
+
+  trades          BacktestTrade[]
+
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BacktestTrade {
+  id              String   @id @default(cuid())
+  backtestRunId   String
+  signalId        String?  // Reference to original signal if exists
+
+  ticker          String
+  signalType      String
+  direction       String
+  strikePrice     Float
+  expirationDate  DateTime
+
+  entryPrice      Float
+  exitPrice       Float
+  entryDate       DateTime
+  exitDate        DateTime
+
+  quantity        Int      @default(1)
+  pnl             Float
+  returnPercent   Float
+  outcome         String   // WIN, LOSS, BREAK_EVEN
+
+  confidence      Float
+  riskLevel       String
+
+  backtestRun     BacktestRun @relation(fields: [backtestRunId], references: [id], onDelete: Cascade)
+
+  @@index([backtestRunId])
+  @@index([outcome])
+  @@index([ticker])
+}
+
+model HistoricalSignalOutcome {
+  id              String   @id @default(cuid())
+  signalId        String   @unique
+
+  ticker          String
+  signalType      String
+  direction       String
+  strikePrice     Float
+  expirationDate  DateTime
+
+  entryPrice      Float
+  entryDate       DateTime
+
+  exitPrice       Float?
+  exitDate        DateTime?
+
+  highPrice       Float?   // Highest price reached
+  lowPrice        Float?   // Lowest price reached
+
+  outcome         String?  // WIN, LOSS, BREAK_EVEN, EXPIRED
+  actualReturn    Float?
+
+  maxDrawdown     Float?   // Max drawdown from entry
+  maxProfit       Float?   // Max profit from entry
+
+  dataCollectedAt DateTime @default(now())
+
+  @@index([ticker])
+  @@index([outcome])
+  @@index([expirationDate])
 }

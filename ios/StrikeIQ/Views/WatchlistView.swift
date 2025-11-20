@@ -2,10 +2,15 @@ import SwiftUI
 
 struct WatchlistView: View {
     @EnvironmentObject var signalStore: SignalStore
+    @EnvironmentObject var authStore: AuthStore
+    @State private var showingFolderManagement = false
+    @State private var selectedFolderId: String?
 
     var body: some View {
         NavigationView {
-            Group {
+            ZStack {
+                Color("Background").ignoresSafeArea()
+
                 if signalStore.watchlist.isEmpty {
                     EmptyStateView(
                         icon: "eye",
@@ -14,17 +19,125 @@ struct WatchlistView: View {
                     )
                 } else {
                     ScrollView {
-                        LazyVStack(spacing: 12) {
+                        LazyVStack(spacing: 16) {
+                            // Folders Section
+                            if !signalStore.watchlistFolders.isEmpty {
+                                VStack(alignment: .leading, spacing: 8) {
+                                    HStack {
+                                        Text("Folders")
+                                            .font(.headline)
+                                            .foregroundColor(.gray)
+
+                                        Spacer()
+
+                                        Button {
+                                            showingFolderManagement = true
+                                        } label: {
+                                            Text("Manage")
+                                                .font(.subheadline)
+                                                .foregroundColor(.blue)
+                                        }
+                                    }
+                                    .padding(.horizontal)
+
+                                    ScrollView(.horizontal, showsIndicators: false) {
+                                        HStack(spacing: 12) {
+                                            ForEach(signalStore.watchlistFolders) { folder in
+                                                FolderChip(folder: folder, isSelected: selectedFolderId == folder.id) {
+                                                    selectedFolderId = folder.id
+                                                }
+                                            }
+
+                                            // Clear filter
+                                            if selectedFolderId != nil {
+                                                Button {
+                                                    selectedFolderId = nil
+                                                } label: {
+                                                    HStack {
+                                                        Image(systemName: "xmark.circle.fill")
+                                                        Text("Clear")
+                                                    }
+                                                    .font(.subheadline)
+                                                    .foregroundColor(.gray)
+                                                    .padding(.horizontal, 12)
+                                                    .padding(.vertical, 8)
+                                                    .background(Color("SurfaceLight"))
+                                                    .cornerRadius(20)
+                                                }
+                                            }
+                                        }
+                                        .padding(.horizontal)
+                                    }
+                                }
+                            }
+
+                            // Watchlist Items
                             ForEach(signalStore.watchlist) { signal in
                                 WatchlistItemView(signal: signal)
                             }
                         }
-                        .padding()
+                        .padding(.vertical)
                     }
                 }
             }
-            .background(Color("Background"))
             .navigationTitle("Watchlist")
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button {
+                        showingFolderManagement = true
+                    } label: {
+                        Image(systemName: "folder")
+                    }
+                }
+            }
+            .sheet(isPresented: $showingFolderManagement) {
+                WatchlistFolderManagementView()
+            }
+            .onAppear {
+                if let token = authStore.token {
+                    signalStore.fetchWatchlistFolders(token: token)
+                }
+            }
+        }
+    }
+}
+
+struct FolderChip: View {
+    let folder: WatchlistFolder
+    let isSelected: Bool
+    let onTap: () -> Void
+
+    var folderColor: Color {
+        if let colorHex = folder.color {
+            return Color(hex: colorHex) ?? .blue
+        }
+        return .blue
+    }
+
+    var body: some View {
+        Button(action: onTap) {
+            HStack(spacing: 6) {
+                Image(systemName: "folder.fill")
+                    .font(.caption)
+
+                Text(folder.name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+
+                if let count = folder.itemCount, count > 0 {
+                    Text("\(count)")
+                        .font(.caption)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(folderColor.opacity(0.3))
+                        .cornerRadius(8)
+                }
+            }
+            .foregroundColor(isSelected ? .white : folderColor)
+            .padding(.horizontal, 12)
+            .padding(.vertical, 8)
+            .background(isSelected ? folderColor : folderColor.opacity(0.2))
+            .cornerRadius(20)
         }
     }
 }

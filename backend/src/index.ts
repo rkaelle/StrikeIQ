@@ -8,9 +8,13 @@ import authRoutes from './routes/auth';
 import signalRoutes from './routes/signals';
 import marketDataRoutes from './routes/marketData';
 import watchlistRoutes from './routes/watchlist';
+import watchlistFoldersRoutes from './routes/watchlistFolders';
 import tradeRoutes from './routes/trades';
 import metricsRoutes from './routes/metrics';
 import educationRoutes from './routes/education';
+import userActionsRoutes from './routes/userActions';
+import sectorAnalysisRoutes from './routes/sectorAnalysis';
+import backtestingRoutes from './routes/backtesting';
 import { initializeWebSocket } from './services/websocket';
 import { initializeInstitutionalSignalEngine } from './services/institutionalSignalEngine';
 import { startDataCollection } from './services/dataCollection';
@@ -55,9 +59,13 @@ app.use('/api/auth', authRoutes);
 app.use('/api/signals', signalRoutes);
 app.use('/api/market', marketDataRoutes);
 app.use('/api/watchlist', watchlistRoutes);
+app.use('/api/watchlist-folders', watchlistFoldersRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/education', educationRoutes);
+app.use('/api/user-actions', userActionsRoutes);
+app.use('/api/sector-analysis', sectorAnalysisRoutes);
+app.use('/api/backtesting', backtestingRoutes);
 
 // Initialize WebSocket
 initializeWebSocket(io);

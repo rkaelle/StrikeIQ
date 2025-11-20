@@ -234,6 +234,45 @@ export const watchlistService = {
   },
 };
 
+export const watchlistFolderService = {
+  getAll: async () => {
+    const response = await api.get('/watchlist-folders');
+    return response.data.folders;
+  },
+
+  create: async (name: string, color?: string) => {
+    const response = await api.post('/watchlist-folders', { name, color });
+    return response.data;
+  },
+
+  get: async (id: string) => {
+    const response = await api.get(`/watchlist-folders/${id}`);
+    return response.data;
+  },
+
+  update: async (id: string, data: { name?: string; color?: string }) => {
+    const response = await api.put(`/watchlist-folders/${id}`, data);
+    return response.data;
+  },
+
+  delete: async (id: string) => {
+    const response = await api.delete(`/watchlist-folders/${id}`);
+    return response.data;
+  },
+
+  reorder: async (folders: { id: string; order: number }[]) => {
+    const response = await api.post('/watchlist-folders/reorder', { folders });
+    return response.data;
+  },
+
+  moveItem: async (folderId: string, watchlistItemId: string) => {
+    const response = await api.post(`/watchlist-folders/${folderId}/move`, {
+      watchlistItemId,
+    });
+    return response.data;
+  },
+};
+
 export const tradeService = {
   get: async (userId: string, status?: string) => {
     const response = await api.get(`/trades/${userId}`, {
