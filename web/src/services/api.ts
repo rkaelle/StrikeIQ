@@ -102,6 +102,26 @@ export const signalService = {
     const response = await api.get('/signals/top/performers');
     return response.data;
   },
+
+  getActivated: async () => {
+    const response = await api.get('/signals/activated');
+    return response.data;
+  },
+
+  activate: async (signalId: string) => {
+    const response = await api.post(`/signals/${signalId}/activate`);
+    return response.data;
+  },
+
+  deactivate: async (signalId: string) => {
+    const response = await api.post(`/signals/${signalId}/deactivate`);
+    return response.data;
+  },
+
+  checkActivationStatus: async (signalId: string) => {
+    const response = await api.get(`/signals/${signalId}/activation-status`);
+    return response.data;
+  },
 };
 
 export const marketService = {

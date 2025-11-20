@@ -6,7 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { format } from 'date-fns'
 import {
   TrendingUp, TrendingDown, Clock, Target, Shield,
-  ChevronDown, ChevronUp, Plus, Check, X, AlertTriangle
+  ChevronDown, ChevronUp, Plus, Check, X, AlertTriangle, CheckCircle, Circle
 } from 'lucide-react'
 import { Signal, useSignalStore } from '@/store/signalStore'
 
@@ -18,9 +18,10 @@ export default function SignalCard({ signal }: SignalCardProps) {
   const router = useRouter()
   const [expanded, setExpanded] = useState(false)
   const [showConfirmation, setShowConfirmation] = useState(false)
-  const { addToWatchlist, acceptSignal, rejectSignal } = useSignalStore()
+  const { addToWatchlist, acceptSignal, rejectSignal, toggleActivation, isSignalActivated } = useSignalStore()
 
   const isBullish = signal.direction === 'CALL'
+  const isActivated = isSignalActivated(signal.id)
 
   const getRiskColor = (level: string) => {
     switch (level) {
@@ -53,6 +54,10 @@ export default function SignalCard({ signal }: SignalCardProps) {
 
   const handleAddToWatchlist = () => {
     addToWatchlist(signal)
+  }
+
+  const handleToggleActivation = () => {
+    toggleActivation(signal.id)
   }
 
   return (
@@ -185,8 +190,19 @@ export default function SignalCard({ signal }: SignalCardProps) {
         )}
       </AnimatePresence>
 
-      {/* Action Buttons */}
-      <div className="flex gap-2 mt-4">
+      {/* Activation Button (Primary Action) */}
+      <button
+        onClick={handleToggleActivation}
+        className={`w-full mt-4 btn flex items-center justify-center gap-2 ${
+          isActivated ? 'btn-primary' : 'btn-secondary'
+        }`}
+      >
+        {isActivated ? <CheckCircle size={18} /> : <Circle size={18} />}
+        {isActivated ? 'Activated' : 'Activate Signal'}
+      </button>
+
+      {/* Secondary Action Buttons */}
+      <div className="flex gap-2 mt-2">
         <button
           onClick={handleReject}
           className="flex-1 btn btn-secondary flex items-center justify-center gap-2"
