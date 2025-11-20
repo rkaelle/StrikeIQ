@@ -61,13 +61,13 @@ export async function analyzeNewsCatalyst(ticker: string): Promise<NewsCatalyst>
     }
 
     // Analyze each news item for catalyst potential
-    const catalystScores = recentNews.map((news) => ({
+    const catalystScores = recentNews.map((news: any) => ({
       news,
       ...analyzeCatalystType(news.title, news.summary),
     }));
 
     // Find highest-scoring catalyst
-    catalystScores.sort((a, b) => {
+    catalystScores.sort((a: any, b: any) => {
       if (a.isRealCatalyst && !b.isRealCatalyst) return -1;
       if (!a.isRealCatalyst && b.isRealCatalyst) return 1;
       return (b.news.relevance || 0) - (a.news.relevance || 0);

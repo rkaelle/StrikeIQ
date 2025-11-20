@@ -75,17 +75,17 @@ export async function analyzeFlowHeat(
     }
 
     // 2. Filter for sweeps and blocks only (institutional activity)
-    const institutionalFlows = flows.filter((f) => f.isSweep || f.isBlock);
+    const institutionalFlows = flows.filter((f: any) => f.isSweep || f.isBlock);
 
     // 3. Separate by sentiment
-    const bullishFlows = institutionalFlows.filter((f) => f.sentiment === 'BULLISH');
-    const bearishFlows = institutionalFlows.filter((f) => f.sentiment === 'BEARISH');
+    const bullishFlows = institutionalFlows.filter((f: any) => f.sentiment === 'BULLISH');
+    const bearishFlows = institutionalFlows.filter((f: any) => f.sentiment === 'BEARISH');
 
-    const totalBullishPremium = bullishFlows.reduce((sum, f) => sum + f.premium, 0);
-    const totalBearishPremium = bearishFlows.reduce((sum, f) => sum + f.premium, 0);
+    const totalBullishPremium = bullishFlows.reduce((sum: any, f: any) => sum + f.premium, 0);
+    const totalBearishPremium = bearishFlows.reduce((sum: any, f: any) => sum + f.premium, 0);
 
     // 4. Find largest single sweep
-    const largestSweep = Math.max(...institutionalFlows.map((f) => f.premium), 0);
+    const largestSweep = Math.max(...institutionalFlows.map((f: any) => f.premium), 0);
 
     // 5. Detect sweep clusters (same strike + expiration within 90 seconds)
     const clusters = detectSweepClusters(institutionalFlows);
@@ -154,7 +154,7 @@ function detectSweepClusters(flows: any[]): SweepCluster[] {
     if (groupFlows.length < 2) continue; // Need at least 2 sweeps to form a cluster
 
     // Sort by timestamp
-    groupFlows.sort((a, b) => a.timestamp.getTime() - b.timestamp.getTime());
+    groupFlows.sort((a: any, b: any) => a.timestamp.getTime() - b.timestamp.getTime());
 
     let clusterStart = 0;
     for (let i = 1; i < groupFlows.length; i++) {
@@ -168,7 +168,7 @@ function detectSweepClusters(flows: any[]): SweepCluster[] {
 
           // Form a cluster
           const clusterFlows = groupFlows.slice(clusterStart, i + 1);
-          const totalPremium = clusterFlows.reduce((sum, f) => sum + f.premium, 0);
+          const totalPremium = clusterFlows.reduce((sum: any, f: any) => sum + f.premium, 0);
           const avgSweepSize = totalPremium / clusterFlows.length;
 
           // Determine dominant direction
@@ -205,7 +205,7 @@ function detectSweepClusters(flows: any[]): SweepCluster[] {
   }
 
   // Sort clusters by total premium (largest first)
-  clusters.sort((a, b) => b.totalPremium - a.totalPremium);
+  clusters.sort((a: any, b: any) => b.totalPremium - a.totalPremium);
 
   return clusters;
 }

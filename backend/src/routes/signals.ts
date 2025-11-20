@@ -91,9 +91,9 @@ router.get('/history/all', async (req, res) => {
 
     // Calculate stats
     const total = signals.length;
-    const wins = signals.filter(s => s.accuracy?.outcome === 'WIN').length;
-    const losses = signals.filter(s => s.accuracy?.outcome === 'LOSS').length;
-    const pending = signals.filter(s => s.accuracy?.outcome === 'PENDING').length;
+    const wins = signals.filter((s: any) => s.accuracy?.outcome === 'WIN').length;
+    const losses = signals.filter((s: any) => s.accuracy?.outcome === 'LOSS').length;
+    const pending = signals.filter((s: any) => s.accuracy?.outcome === 'PENDING').length;
 
     res.json({
       signals,
@@ -160,7 +160,7 @@ router.get('/activated', authMiddleware, async (req, res) => {
     });
 
     // Extract signals from activations
-    const signals = activations.map(activation => ({
+    const signals = activations.map((activation: any) => ({
       ...activation.signal,
       activatedAt: activation.activatedAt
     }));
@@ -338,8 +338,8 @@ router.get('/debug/all', async (req, res) => {
 
     const stats = {
       total: signals.length,
-      active: signals.filter(s => s.isActive).length,
-      inactive: signals.filter(s => !s.isActive).length
+      active: signals.filter((s: any) => s.isActive).length,
+      inactive: signals.filter((s: any) => !s.isActive).length
     };
 
     res.json({ stats, signals });

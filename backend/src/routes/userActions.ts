@@ -122,7 +122,7 @@ router.get('/analytics', authMiddleware, async (req, res) => {
     });
 
     // Group by day
-    const dailyActivity = allActions.reduce((acc: any, action) => {
+    const dailyActivity = allActions.reduce((acc: any, action: any) => {
       const date = action.createdAt.toISOString().split('T')[0];
       acc[date] = (acc[date] || 0) + 1;
       return acc;
@@ -131,15 +131,15 @@ router.get('/analytics', authMiddleware, async (req, res) => {
     res.json({
       period: `${days} days`,
       totalActions: allActions.length,
-      byActionType: actionsByType.map(item => ({
+      byActionType: actionsByType.map((item: any) => ({
         action: item.action,
         count: item._count
       })),
-      byDevice: actionsByDevice.map(item => ({
+      byDevice: actionsByDevice.map((item: any) => ({
         device: item.deviceType,
         count: item._count
       })),
-      dailyActivity: Object.entries(dailyActivity).map(([date, count]) => ({
+      dailyActivity: Object.entries(dailyActivity).map(([date, count]: any) => ({
         date,
         count
       }))
@@ -168,8 +168,8 @@ router.get('/preferences', authMiddleware, async (req, res) => {
       preferences = await prisma.userPreferences.create({
         data: {
           userId,
-          defaultFilters: null,
-          notificationSettings: null,
+          defaultFilters: undefined,
+          notificationSettings: undefined,
           watchlistView: 'list',
           theme: 'dark'
         }

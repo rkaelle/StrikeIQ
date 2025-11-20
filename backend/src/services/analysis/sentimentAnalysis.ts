@@ -69,7 +69,7 @@ export async function analyzeSentiment(ticker: string): Promise<SentimentAnalysi
 
     // Check for breaking news (high relevance recent article)
     const breakingNews = recentNews.some(
-      article => article.relevance > 0.8 &&
+      (article: any) => article.relevance > 0.8 &&
       new Date(article.publishedAt).getTime() > Date.now() - 2 * 60 * 60 * 1000
     );
 

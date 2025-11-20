@@ -75,20 +75,20 @@ export async function analyzeOptionsFlow(ticker: string): Promise<FlowAnalysisRe
     );
 
     const oiScore = Math.min(
-      recentFlow.reduce((sum, f) => sum + f.openInterest, 0) / 10000,
+      recentFlow.reduce((sum: any, f: any) => sum + f.openInterest, 0) / 10000,
       100
     );
 
     // Find best strikes
-    const callFlows = recentFlow.filter(f => f.optionType === 'CALL');
-    const putFlows = recentFlow.filter(f => f.optionType === 'PUT');
+    const callFlows = recentFlow.filter((f: any) => f.optionType === 'CALL');
+    const putFlows = recentFlow.filter((f: any) => f.optionType === 'PUT');
 
     const bestCallStrike = callFlows.length > 0
-      ? callFlows.reduce((max, f) => f.volume > max.volume ? f : max).strikePrice
+      ? callFlows.reduce((max: any, f: any) => f.volume > max.volume ? f : max).strikePrice
       : 0;
 
     const bestPutStrike = putFlows.length > 0
-      ? putFlows.reduce((max, f) => f.volume > max.volume ? f : max).strikePrice
+      ? putFlows.reduce((max: any, f: any) => f.volume > max.volume ? f : max).strikePrice
       : 0;
 
     const strikePrice = direction === 'CALL' ? bestCallStrike : bestPutStrike;

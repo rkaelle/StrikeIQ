@@ -212,7 +212,7 @@ router.get('/history/:ticker', async (req, res) => {
     });
 
     // Serialize data to handle bigint and null values
-    const serializedData = data.map(item => ({
+    const serializedData = data.map((item: any) => ({
       ...item,
       volume: item.volume ? Number(item.volume) : 0,
       open: item.open ?? 0,

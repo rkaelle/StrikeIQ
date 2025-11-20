@@ -50,7 +50,7 @@ export async function analyzeVolatilityRegime(ticker: string): Promise<Volatilit
       select: { close: true },
     });
 
-    const vixTrend = determineVIXTrend(vixHistory.map((v) => v.close), vix);
+    const vixTrend = determineVIXTrend(vixHistory.map((v: any) => v.close), vix);
 
     // 3. Get ticker volume data for RVOL calculation
     const recentVolume = await prisma.marketData.findFirst({
@@ -121,8 +121,8 @@ export async function analyzeVolatilityRegime(ticker: string): Promise<Volatilit
 function determineVIXTrend(vixHistory: number[], currentVIX: number): 'RISING' | 'FALLING' | 'FLAT' {
   if (vixHistory.length < 5) return 'FLAT';
 
-  const recentAvg = vixHistory.slice(0, 5).reduce((a, b) => a + b, 0) / 5;
-  const olderAvg = vixHistory.slice(5, 10).reduce((a, b) => a + b, 0) / 5;
+  const recentAvg = vixHistory.slice(0, 5).reduce((a: any, b: any) => a + b, 0) / 5;
+  const olderAvg = vixHistory.slice(5, 10).reduce((a: any, b: any) => a + b, 0) / 5;
 
   const change = ((recentAvg - olderAvg) / olderAvg) * 100;
 
@@ -169,7 +169,7 @@ async function determineMarketState(ticker: string): Promise<MarketState> {
 
     if (candles.length < 20) return 'CHOP'; // Not enough data = assume chop
 
-    const closes = candles.map((c) => c.close).reverse();
+    const closes = candles.map((c: any) => c.close).reverse();
 
     // Calculate 1-min and 5-min EMAs
     const ema1 = calculateEMA(closes, 1);
@@ -186,7 +186,7 @@ async function determineMarketState(ticker: string): Promise<MarketState> {
     const latestRSI = candles[0].rsi || 50;
 
     // Calculate price volatility (high-low range)
-    const priceRange = Math.max(...candles.map((c) => c.high)) - Math.min(...candles.map((c) => c.low));
+    const priceRange = Math.max(...candles.map((c: any) => c.high)) - Math.min(...candles.map((c: any) => c.low));
     const priceRangePct = (priceRange / ema1) * 100;
 
     // Determine market state

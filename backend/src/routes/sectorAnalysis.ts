@@ -16,7 +16,7 @@ router.get('/portfolio', authMiddleware, async (req, res) => {
     }
 
     // Get user's activated signals
-    const activations = await prisma.signalActivation.findMany({
+    const activations = await prisma.userSignalActivation.findMany({
       where: {
         userId,
         activated: true
@@ -26,7 +26,7 @@ router.get('/portfolio', authMiddleware, async (req, res) => {
       }
     });
 
-    const tickers = activations.map(a => a.signal.ticker);
+    const tickers = activations.map((a: any) => a.signal.ticker);
 
     if (tickers.length === 0) {
       return res.json({
@@ -62,7 +62,7 @@ router.get('/watchlist', authMiddleware, async (req, res) => {
       include: { signal: true }
     });
 
-    const tickers = watchlist.map(w => w.signal.ticker);
+    const tickers = watchlist.map((w: any) => w.signal.ticker);
 
     if (tickers.length === 0) {
       return res.json([]);
@@ -121,7 +121,7 @@ router.get('/performance', authMiddleware, async (req, res) => {
       winRate: number;
     }> = {};
 
-    signals.forEach(signal => {
+    signals.forEach((signal: any) => {
       const sector = getSector(signal.ticker);
 
       if (!sectorPerformance[sector]) {

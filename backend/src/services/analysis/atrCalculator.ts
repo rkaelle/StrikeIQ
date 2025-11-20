@@ -45,7 +45,7 @@ export function calculateATR(candles: any[], period: number = 14): number {
   }
 
   // Calculate first ATR as simple average
-  let atr = trueRanges.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  let atr = trueRanges.slice(0, period).reduce((a: any, b: any) => a + b, 0) / period;
 
   // Calculate smoothed ATR using Wilder's smoothing method
   for (let i = period; i < trueRanges.length; i++) {

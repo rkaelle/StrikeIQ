@@ -21,15 +21,15 @@ router.get('/system', async (req, res) => {
 
     // Overall stats
     const total = signals.length;
-    const wins = signals.filter(s => s.accuracy?.outcome === 'WIN').length;
-    const losses = signals.filter(s => s.accuracy?.outcome === 'LOSS').length;
-    const pending = signals.filter(s => s.accuracy?.outcome === 'PENDING').length;
+    const wins = signals.filter((s: any) => s.accuracy?.outcome === 'WIN').length;
+    const losses = signals.filter((s: any) => s.accuracy?.outcome === 'LOSS').length;
+    const pending = signals.filter((s: any) => s.accuracy?.outcome === 'PENDING').length;
 
     // Stats by signal type
     const byType = ['0DTE', 'WEEKLY', 'EARNINGS', 'DARK_POOL', 'NEWS'].reduce((acc, type) => {
-      const typeSignals = signals.filter(s => s.signalType === type);
-      const typeWins = typeSignals.filter(s => s.accuracy?.outcome === 'WIN').length;
-      const typeLosses = typeSignals.filter(s => s.accuracy?.outcome === 'LOSS').length;
+      const typeSignals = signals.filter((s: any) => s.signalType === type);
+      const typeWins = typeSignals.filter((s: any) => s.accuracy?.outcome === 'WIN').length;
+      const typeLosses = typeSignals.filter((s: any) => s.accuracy?.outcome === 'LOSS').length;
 
       acc[type] = {
         total: typeSignals.length,
@@ -44,19 +44,19 @@ router.get('/system', async (req, res) => {
     }, {} as Record<string, any>);
 
     // Average returns
-    const completedSignals = signals.filter(s => s.accuracy?.actualReturn !== null);
+    const completedSignals = signals.filter((s: any) => s.accuracy?.actualReturn !== null);
     const avgReturn = completedSignals.length > 0
-      ? completedSignals.reduce((sum, s) => sum + (s.accuracy?.actualReturn || 0), 0) / completedSignals.length
+      ? completedSignals.reduce((sum: any, s: any) => sum + (s.accuracy?.actualReturn || 0), 0) / completedSignals.length
       : 0;
 
     // Average confidence
     const avgConfidence = total > 0
-      ? signals.reduce((sum, s) => sum + s.confidence, 0) / total
+      ? signals.reduce((sum: any, s: any) => sum + s.confidence, 0) / total
       : 0;
 
     // Risk/reward
     const avgRiskReward = total > 0
-      ? signals.reduce((sum, s) => sum + s.riskReward, 0) / total
+      ? signals.reduce((sum: any, s: any) => sum + s.riskReward, 0) / total
       : 0;
 
     res.json({
@@ -94,15 +94,15 @@ router.get('/user/:userId', async (req, res) => {
       }
     });
 
-    const closedTrades = trades.filter(t => t.status === 'CLOSED');
-    const wins = closedTrades.filter(t => t.outcome === 'WIN').length;
-    const losses = closedTrades.filter(t => t.outcome === 'LOSS').length;
-    const totalPnl = closedTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const closedTrades = trades.filter((t: any) => t.status === 'CLOSED');
+    const wins = closedTrades.filter((t: any) => t.outcome === 'WIN').length;
+    const losses = closedTrades.filter((t: any) => t.outcome === 'LOSS').length;
+    const totalPnl = closedTrades.reduce((sum: any, t: any) => sum + (t.pnl || 0), 0);
 
     // Calculate streak
     let currentStreak = 0;
     let streakType = '';
-    const sortedTrades = closedTrades.sort((a, b) =>
+    const sortedTrades = closedTrades.sort((a: any, b: any) =>
       new Date(b.exitedAt || 0).getTime() - new Date(a.exitedAt || 0).getTime()
     );
 
@@ -118,18 +118,18 @@ router.get('/user/:userId', async (req, res) => {
     }
 
     // Best and worst trades
-    const bestTrade = closedTrades.reduce((best, t) =>
+    const bestTrade = closedTrades.reduce((best: any, t: any) =>
       (t.pnl || 0) > (best?.pnl || 0) ? t : best
     , closedTrades[0]);
 
-    const worstTrade = closedTrades.reduce((worst, t) =>
+    const worstTrade = closedTrades.reduce((worst: any, t: any) =>
       (t.pnl || 0) < (worst?.pnl || 0) ? t : worst
     , closedTrades[0]);
 
     res.json({
       period: `${days} days`,
       totalTrades: trades.length,
-      openTrades: trades.filter(t => t.status === 'OPEN').length,
+      openTrades: trades.filter((t: any) => t.status === 'OPEN').length,
       closedTrades: closedTrades.length,
       wins,
       losses,
@@ -163,10 +163,10 @@ router.get('/leaderboard', async (req, res) => {
       }
     });
 
-    const leaderboard = users.map(user => {
-      const wins = user.trades.filter(t => t.outcome === 'WIN').length;
+    const leaderboard = users.map((user: any) => {
+      const wins = user.trades.filter((t: any) => t.outcome === 'WIN').length;
       const total = user.trades.length;
-      const totalPnl = user.trades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+      const totalPnl = user.trades.reduce((sum: any, t: any) => sum + (t.pnl || 0), 0);
 
       return {
         userId: user.id,
@@ -176,8 +176,8 @@ router.get('/leaderboard', async (req, res) => {
         totalPnl: totalPnl.toFixed(2),
         totalPnlNumeric: totalPnl // For sorting
       };
-    }).sort((a, b) => b.totalPnlNumeric - a.totalPnlNumeric)
-      .map(({ totalPnlNumeric, ...rest }) => rest); // Remove sorting helper
+    }).sort((a: any, b: any) => b.totalPnlNumeric - a.totalPnlNumeric)
+      .map(({ totalPnlNumeric, ...rest }: any) => rest); // Remove sorting helper
 
     res.json(leaderboard.slice(0, 10));
   } catch (error) {

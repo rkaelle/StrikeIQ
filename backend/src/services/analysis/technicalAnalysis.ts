@@ -30,10 +30,10 @@ export async function analyzeTechnicals(ticker: string): Promise<TechnicalAnalys
       return getDefaultTechnicals();
     }
 
-    const closes = marketData.map(d => d.close).reverse();
-    const highs = marketData.map(d => d.high).reverse();
-    const lows = marketData.map(d => d.low).reverse();
-    const volumes = marketData.map(d => Number(d.volume)).reverse();
+    const closes = marketData.map((d: any) => d.close).reverse();
+    const highs = marketData.map((d: any) => d.high).reverse();
+    const lows = marketData.map((d: any) => d.low).reverse();
+    const volumes = marketData.map((d: any) => Number(d.volume)).reverse();
 
     const currentPrice = closes[closes.length - 1];
 
@@ -53,8 +53,8 @@ export async function analyzeTechnicals(ticker: string): Promise<TechnicalAnalys
     const { support, resistance } = findSupportResistance(highs, lows, currentPrice);
 
     // Determine trend
-    const sma20 = closes.slice(-20).reduce((a, b) => a + b, 0) / 20;
-    const sma50 = closes.slice(-50).reduce((a, b) => a + b, 0) / Math.min(50, closes.length);
+    const sma20 = closes.slice(-20).reduce((a: any, b: any) => a + b, 0) / 20;
+    const sma50 = closes.slice(-50).reduce((a: any, b: any) => a + b, 0) / Math.min(50, closes.length);
 
     let trend: 'BULLISH' | 'BEARISH' | 'NEUTRAL' = 'NEUTRAL';
     if (currentPrice > sma20 && sma20 > sma50 && rsi > 50) {
@@ -91,8 +91,8 @@ export async function analyzeTechnicals(ticker: string): Promise<TechnicalAnalys
     technicalScore = Math.min(technicalScore, 100);
 
     // Volume score
-    const avgVolume = volumes.slice(-20).reduce((a, b) => a + b, 0) / 20;
-    const recentVolume = volumes.slice(-5).reduce((a, b) => a + b, 0) / 5;
+    const avgVolume = volumes.slice(-20).reduce((a: any, b: any) => a + b, 0) / 20;
+    const recentVolume = volumes.slice(-5).reduce((a: any, b: any) => a + b, 0) / 5;
     const volumeScore = Math.min((recentVolume / avgVolume) * 50, 100);
 
     // Find nearest strike (round to nearest 5 for most tickers)
@@ -157,7 +157,7 @@ function calculateEMA(data: number[], period: number): number {
   if (data.length < period) return data[data.length - 1] || 0;
 
   const multiplier = 2 / (period + 1);
-  let ema = data.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  let ema = data.slice(0, period).reduce((a: any, b: any) => a + b, 0) / period;
 
   for (let i = period; i < data.length; i++) {
     ema = (data[i] - ema) * multiplier + ema;
@@ -168,10 +168,10 @@ function calculateEMA(data: number[], period: number): number {
 
 function calculateBollingerBands(closes: number[], period: number): { upper: number; middle: number; lower: number } {
   const slice = closes.slice(-period);
-  const middle = slice.reduce((a, b) => a + b, 0) / slice.length;
+  const middle = slice.reduce((a: any, b: any) => a + b, 0) / slice.length;
 
-  const squaredDiffs = slice.map(value => Math.pow(value - middle, 2));
-  const stdDev = Math.sqrt(squaredDiffs.reduce((a, b) => a + b, 0) / slice.length);
+  const squaredDiffs = slice.map((value: any) => Math.pow(value - middle, 2));
+  const stdDev = Math.sqrt(squaredDiffs.reduce((a: any, b: any) => a + b, 0) / slice.length);
 
   return {
     upper: middle + (stdDev * 2),
