@@ -5,6 +5,7 @@ class SignalStore: ObservableObject {
     @Published var signals: [Signal] = []
     @Published var watchlist: [Signal] = []
     @Published var activatedSignals: Set<String> = [] // Track activated signal IDs
+    @Published var watchlistFolders: [WatchlistFolder] = []
     @Published var isLoading = false
     @Published var error: String?
     @Published var wsConnected = false
@@ -176,5 +177,104 @@ class SignalStore: ObservableObject {
         } else {
             activateSignal(signal, token: token)
         }
+    }
+
+    // MARK: - Watchlist Folders
+
+    func fetchWatchlistFolders(token: String) {
+        apiService.fetchWatchlistFolders(token: token)
+            .sink(
+                receiveCompletion: { completion in
+                    if case .failure(let error) = completion {
+                        print("Error fetching watchlist folders: \(error)")
+                    }
+                },
+                receiveValue: { [weak self] folders in
+                    self?.watchlistFolders = folders.map { $0.asFolder }
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func createFolder(name: String, color: String?, token: String) {
+        apiService.createWatchlistFolder(name: name, color: color, token: token)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        print("Error creating folder: \(error)")
+                        self?.error = "Failed to create folder"
+                    }
+                },
+                receiveValue: { [weak self] response in
+                    self?.watchlistFolders.append(response.folder.asFolder)
+                    self?.watchlistFolders.sort { $0.order < $1.order }
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func updateFolder(id: String, name: String?, color: String?, token: String) {
+        apiService.updateWatchlistFolder(id: id, name: name, color: color, token: token)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        print("Error updating folder: \(error)")
+                        self?.error = "Failed to update folder"
+                    }
+                },
+                receiveValue: { [weak self] response in
+                    if let index = self?.watchlistFolders.firstIndex(where: { $0.id == id }) {
+                        self?.watchlistFolders[index] = response.folder.asFolder
+                    }
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func deleteFolder(id: String, token: String) {
+        apiService.deleteWatchlistFolder(id: id, token: token)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        print("Error deleting folder: \(error)")
+                        self?.error = "Failed to delete folder"
+                    }
+                },
+                receiveValue: { [weak self] _ in
+                    self?.watchlistFolders.removeAll { $0.id == id }
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func reorderFolders(folders: [FolderOrder], token: String) {
+        apiService.reorderWatchlistFolders(folders: folders, token: token)
+            .sink(
+                receiveCompletion: { completion in
+                    if case .failure(let error) = completion {
+                        print("Error reordering folders: \(error)")
+                    }
+                },
+                receiveValue: { _ in
+                    print("Folders reordered successfully")
+                }
+            )
+            .store(in: &cancellables)
+    }
+
+    func moveToFolder(folderId: String, watchlistItemId: String, token: String) {
+        apiService.moveWatchlistItemToFolder(folderId: folderId, watchlistItemId: watchlistItemId, token: token)
+            .sink(
+                receiveCompletion: { [weak self] completion in
+                    if case .failure(let error) = completion {
+                        print("Error moving item to folder: \(error)")
+                        self?.error = "Failed to move item"
+                    }
+                },
+                receiveValue: { _ in
+                    print("Item moved to folder successfully")
+                }
+            )
+            .store(in: &cancellables)
     }
 }

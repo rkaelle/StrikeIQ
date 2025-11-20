@@ -130,6 +130,107 @@ class APIService {
         return post(URL(string: "\(baseURL)/watchlist")!, body: body)
     }
 
+    // MARK: - Watchlist Folders
+
+    func fetchWatchlistFolders(token: String) -> AnyPublisher<[WatchlistFolderWithCount], Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/watchlist-folders")!)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: WatchlistFolderResponse.self, decoder: jsonDecoder)
+            .map(\.folders)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func createWatchlistFolder(name: String, color: String?, token: String) -> AnyPublisher<WatchlistFolderCreateResponse, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/watchlist-folders")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = CreateFolderRequest(name: name, color: color)
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: WatchlistFolderCreateResponse.self, decoder: jsonDecoder)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func fetchWatchlistFolder(id: String, token: String) -> AnyPublisher<WatchlistFolderDetailResponse, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/watchlist-folders/\(id)")!)
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: WatchlistFolderDetailResponse.self, decoder: jsonDecoder)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func updateWatchlistFolder(id: String, name: String?, color: String?, token: String) -> AnyPublisher<WatchlistFolderUpdateResponse, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/watchlist-folders/\(id)")!)
+        request.httpMethod = "PUT"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = UpdateFolderRequest(name: name, color: color)
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .decode(type: WatchlistFolderUpdateResponse.self, decoder: jsonDecoder)
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func deleteWatchlistFolder(id: String, token: String) -> AnyPublisher<Data, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/watchlist-folders/\(id)")!)
+        request.httpMethod = "DELETE"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .mapError { $0 as Error }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func reorderWatchlistFolders(folders: [FolderOrder], token: String) -> AnyPublisher<Data, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/watchlist-folders/reorder")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = ReorderFoldersRequest(folders: folders)
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .mapError { $0 as Error }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
+    func moveWatchlistItemToFolder(folderId: String, watchlistItemId: String, token: String) -> AnyPublisher<Data, Error> {
+        var request = URLRequest(url: URL(string: "\(baseURL)/watchlist-folders/\(folderId)/move")!)
+        request.httpMethod = "POST"
+        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+
+        let body = MoveToFolderRequest(watchlistItemId: watchlistItemId)
+        request.httpBody = try? JSONEncoder().encode(body)
+
+        return URLSession.shared.dataTaskPublisher(for: request)
+            .map(\.data)
+            .mapError { $0 as Error }
+            .receive(on: DispatchQueue.main)
+            .eraseToAnyPublisher()
+    }
+
     // MARK: - Trades
 
     func fetchTrades(userId: String) -> AnyPublisher<TradesResponse, Error> {
