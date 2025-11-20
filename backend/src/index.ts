@@ -11,6 +11,7 @@ import watchlistRoutes from './routes/watchlist';
 import tradeRoutes from './routes/trades';
 import metricsRoutes from './routes/metrics';
 import educationRoutes from './routes/education';
+import userActionsRoutes from './routes/userActions';
 import { initializeWebSocket } from './services/websocket';
 import { initializeInstitutionalSignalEngine } from './services/institutionalSignalEngine';
 import { startDataCollection } from './services/dataCollection';
@@ -58,6 +59,7 @@ app.use('/api/watchlist', watchlistRoutes);
 app.use('/api/trades', tradeRoutes);
 app.use('/api/metrics', metricsRoutes);
 app.use('/api/education', educationRoutes);
+app.use('/api/user-actions', userActionsRoutes);
 
 // Initialize WebSocket
 initializeWebSocket(io);
