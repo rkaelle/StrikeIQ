@@ -263,7 +263,7 @@ export const useSignalStore = create<SignalStore>((set, get) => ({
   fetchActivatedSignals: async () => {
     try {
       const activatedSignals = await signalService.getActivated()
-      const signalIds = new Set(activatedSignals.map((s: Signal) => s.id))
+      const signalIds = new Set<string>(activatedSignals.map((s: Signal) => s.id))
       set({ activatedSignals: signalIds })
     } catch (error) {
       console.error('Error fetching activated signals:', error)
