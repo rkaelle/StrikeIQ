@@ -74,7 +74,7 @@ router.get('/', authMiddleware, async (req, res) => {
     const total = await prisma.backtestRun.count({ where });
 
     res.json({
-      runs: runs.map(run => ({
+      runs: runs.map((run: any) => ({
         ...run,
         tradeCount: run._count.trades
       })),

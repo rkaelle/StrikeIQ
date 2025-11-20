@@ -62,7 +62,7 @@ async function clearOldSignalsBeforeDate() {
       },
     });
 
-    const idsToDelete = signalIds.map((s) => s.id);
+    const idsToDelete = signalIds.map((s: any) => s.id);
 
     // 5. Delete accuracy records for these signals
     console.log('🗑️  Deleting accuracy records for old signals...');

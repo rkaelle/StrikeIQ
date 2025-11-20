@@ -20,10 +20,10 @@ router.get('/:userId', async (req, res) => {
     });
 
     // Calculate stats
-    const closedTrades = trades.filter(t => t.status === 'CLOSED');
-    const wins = closedTrades.filter(t => t.outcome === 'WIN').length;
-    const losses = closedTrades.filter(t => t.outcome === 'LOSS').length;
-    const totalPnl = closedTrades.reduce((sum, t) => sum + (t.pnl || 0), 0);
+    const closedTrades = trades.filter((t: any) => t.status === 'CLOSED');
+    const wins = closedTrades.filter((t: any) => t.outcome === 'WIN').length;
+    const losses = closedTrades.filter((t: any) => t.outcome === 'LOSS').length;
+    const totalPnl = closedTrades.reduce((sum: any, t: any) => sum + (t.pnl || 0), 0);
 
     res.json({
       trades,

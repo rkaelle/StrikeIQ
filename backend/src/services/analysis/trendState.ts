@@ -64,7 +64,7 @@ export async function analyzeTrendState(ticker: string): Promise<TrendStateData>
       return createDefaultTrendState('CHOP');
     }
 
-    const closes = candles.map((c) => c.close).reverse();
+    const closes = candles.map((c: any) => c.close).reverse();
 
     // 2. Calculate EMAs
     const ema1 = calculateEMA(closes, 1);

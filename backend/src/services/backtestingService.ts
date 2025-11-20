@@ -300,7 +300,7 @@ export async function collectHistoricalOutcome(signalId: string) {
   }
 
   // Get actual outcome from signal's accuracy data
-  const accuracy = signal.accuracy as any;
+  const accuracy = (signal as any).accuracy;
   const outcome = accuracy?.outcome;
   const actualReturn = accuracy?.actualReturn;
 

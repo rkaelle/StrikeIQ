@@ -138,7 +138,7 @@ async function getRecentPriceMovement(ticker: string): Promise<number[]> {
     select: { close: true },
   });
 
-  return candles.map((c) => c.close);
+  return candles.map((c: any) => c.close);
 }
 
 /**
@@ -178,8 +178,8 @@ function calculateCorrelation(series1: number[], series2: number[]): number {
   if (returns1.length === 0) return 0;
 
   // Calculate means
-  const mean1 = returns1.reduce((a, b) => a + b, 0) / returns1.length;
-  const mean2 = returns2.reduce((a, b) => a + b, 0) / returns2.length;
+  const mean1 = returns1.reduce((a: any, b: any) => a + b, 0) / returns1.length;
+  const mean2 = returns2.reduce((a: any, b: any) => a + b, 0) / returns2.length;
 
   // Calculate correlation
   let numerator = 0;

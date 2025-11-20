@@ -184,7 +184,7 @@ export async function getSignalStatistics(): Promise<{
       }),
     ]);
 
-    const topTickersToday = topTickers.map((t) => ({
+    const topTickersToday = topTickers.map((t: any) => ({
       ticker: t.ticker,
       count: t._count.ticker,
     }));
@@ -232,7 +232,7 @@ export function queueSignal(ticker: string, confidence: number, metadata: any): 
   });
 
   // Sort by confidence (highest first)
-  signalQueue.sort((a, b) => b.confidence - a.confidence);
+  signalQueue.sort((a: any, b: any) => b.confidence - a.confidence);
 
   // Keep only top 20 queued signals
   if (signalQueue.length > 20) {

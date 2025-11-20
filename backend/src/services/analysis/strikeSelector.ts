@@ -78,7 +78,7 @@ export async function selectOptimalStrike(
     const targetDistance = calculateTargetDistance(expirationDays, trendData, volatilityData);
 
     // 4. Filter strikes by distance
-    const validStrikes = optionsChain.filter((opt) => {
+    const validStrikes = optionsChain.filter((opt: any) => {
       const distance = ((opt.strikePrice - currentPrice) / currentPrice) * 100;
       const absDistance = Math.abs(distance);
 
@@ -96,7 +96,7 @@ export async function selectOptimalStrike(
     }
 
     // 5. Score each strike
-    const scoredStrikes = validStrikes.map((opt) => {
+    const scoredStrikes = validStrikes.map((opt: any) => {
       const flowScore = calculateFlowScore(opt, flowData);
       const liquidityScore = calculateLiquidityScore(opt);
       const gammaScore = estimateGammaScore(opt, currentPrice);
@@ -110,7 +110,7 @@ export async function selectOptimalStrike(
     });
 
     // 6. Pick highest scoring strike
-    scoredStrikes.sort((a, b) => b.totalScore - a.totalScore);
+    scoredStrikes.sort((a: any, b: any) => b.totalScore - a.totalScore);
     const bestStrike = scoredStrikes[0];
 
     // 7. Calculate metrics
