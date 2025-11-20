@@ -8,6 +8,7 @@ import {
   Eye, Trash2, Plus, BarChart3, Newspaper, LogOut
 } from 'lucide-react'
 import { authService, watchlistService, tradeService, metricsService, marketService } from '@/services/api'
+import OnboardingFlow from '@/components/OnboardingFlow'
 
 interface UserMetrics {
   totalTrades: number
@@ -44,6 +45,7 @@ export default function DashboardPage() {
   const [trades, setTrades] = useState<Trade[]>([])
   const [news, setNews] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [showOnboarding, setShowOnboarding] = useState(false)
 
   useEffect(() => {
     const currentUser = authService.getCurrentUser()
@@ -52,8 +54,25 @@ export default function DashboardPage() {
       return
     }
     setUser(currentUser)
+
+    // Check if user has completed onboarding
+    const hasCompletedOnboarding = localStorage.getItem('hasCompletedOnboarding')
+    if (!hasCompletedOnboarding) {
+      setShowOnboarding(true)
+    }
+
     fetchUserData(currentUser.id)
   }, [router])
+
+  const handleOnboardingComplete = () => {
+    localStorage.setItem('hasCompletedOnboarding', 'true')
+    setShowOnboarding(false)
+  }
+
+  const handleOnboardingSkip = () => {
+    localStorage.setItem('hasCompletedOnboarding', 'true')
+    setShowOnboarding(false)
+  }
 
   const fetchUserData = async (userId: string) => {
     try {
@@ -98,28 +117,37 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="bg-surface border-b border-gray-800 px-6 py-4">
-        <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-            <p className="text-gray-400 text-sm">Welcome back, {user?.name || user?.email}</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <button
-              onClick={() => router.push('/')}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              View Signals
-            </button>
-            <button
-              onClick={handleLogout}
-              className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
-            >
-              <LogOut className="w-4 h-4" />
-              Logout
-            </button>
+    <>
+      {/* Onboarding Flow */}
+      {showOnboarding && (
+        <OnboardingFlow
+          onComplete={handleOnboardingComplete}
+          onSkip={handleOnboardingSkip}
+        />
+      )}
+
+      <div className="min-h-screen bg-background">
+        {/* Header */}
+        <header className="bg-surface border-b border-gray-800 px-6 py-4">
+          <div className="max-w-7xl mx-auto flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+              <p className="text-gray-400 text-sm">Welcome back, {user?.name || user?.email}</p>
+            </div>
+            <div className="flex items-center gap-4">
+              <button
+                onClick={() => router.push('/')}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                View Signals
+              </button>
+              <button
+                onClick={handleLogout}
+                className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Logout
+              </button>
           </div>
         </div>
       </header>
@@ -318,5 +346,6 @@ export default function DashboardPage() {
         </section>
       </main>
     </div>
+    </>
   )
 }
