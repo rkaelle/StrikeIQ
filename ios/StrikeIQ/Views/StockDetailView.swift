@@ -1,4 +1,5 @@
 import SwiftUI
+import Combine
 
 struct StockDetailView: View {
     let ticker: String
@@ -41,10 +42,10 @@ struct StockDetailView: View {
                             GridItem(.flexible()),
                             GridItem(.flexible())
                         ], spacing: 12) {
-                            StatCard(title: "Open", value: String(format: "$%.2f", quote.open))
-                            StatCard(title: "High", value: String(format: "$%.2f", quote.high), color: Color("Bullish"))
-                            StatCard(title: "Low", value: String(format: "$%.2f", quote.low), color: Color("Bearish"))
-                            StatCard(title: "Volume", value: formatVolume(quote.volume))
+                            StockStatCard(title: "Open", value: String(format: "$%.2f", quote.open))
+                            StockStatCard(title: "High", value: String(format: "$%.2f", quote.high), color: Color("Bullish"))
+                            StockStatCard(title: "Low", value: String(format: "$%.2f", quote.low), color: Color("Bearish"))
+                            StockStatCard(title: "Volume", value: formatVolume(quote.volume))
                         }
                     }
                     .padding()
@@ -132,7 +133,7 @@ struct StockDetailView: View {
     }
 }
 
-struct StatCard: View {
+struct StockStatCard: View {
     let title: String
     let value: String
     var color: Color = .white
