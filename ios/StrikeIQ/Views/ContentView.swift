@@ -159,18 +159,53 @@ struct SignalsView: View {
 }
 
 struct MarketOverviewBar: View {
+    @StateObject private var viewModel = MarketOverviewViewModel()
+
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
-            HStack(spacing: 20) {
-                MarketTicker(symbol: "SPY", price: 452.30, change: 0.54)
-                MarketTicker(symbol: "QQQ", price: 382.15, change: 1.11)
-                MarketTicker(symbol: "VIX", price: 18.50, change: -4.14)
-                MarketTicker(symbol: "DIA", price: 385.60, change: 0.34)
+            if viewModel.isLoading && viewModel.spyQuote == nil {
+                // Show loading state only on initial load
+                HStack(spacing: 20) {
+                    ForEach(0..<4, id: \.self) { _ in
+                        ProgressView()
+                            .frame(width: 100, height: 30)
+                    }
+                }
+                .padding(.horizontal)
+            } else {
+                HStack(spacing: 20) {
+                    if let spy = viewModel.spyQuote {
+                        MarketTicker(symbol: spy.ticker, price: spy.price, change: spy.changePercent)
+                    } else {
+                        MarketTicker(symbol: "SPY", price: 0, change: 0)
+                    }
+
+                    if let qqq = viewModel.qqqQuote {
+                        MarketTicker(symbol: qqq.ticker, price: qqq.price, change: qqq.changePercent)
+                    } else {
+                        MarketTicker(symbol: "QQQ", price: 0, change: 0)
+                    }
+
+                    if let vix = viewModel.vixQuote {
+                        MarketTicker(symbol: vix.ticker, price: vix.price, change: vix.changePercent)
+                    } else {
+                        MarketTicker(symbol: "VIX", price: 0, change: 0)
+                    }
+
+                    if let dia = viewModel.diaQuote {
+                        MarketTicker(symbol: dia.ticker, price: dia.price, change: dia.changePercent)
+                    } else {
+                        MarketTicker(symbol: "DIA", price: 0, change: 0)
+                    }
+                }
+                .padding(.horizontal)
             }
-            .padding(.horizontal)
         }
         .padding(.vertical, 12)
         .background(Color("Surface"))
+        .onAppear {
+            viewModel.fetchAllQuotes()
+        }
     }
 }
 
