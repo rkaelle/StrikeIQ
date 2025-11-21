@@ -24,6 +24,10 @@
 		015 /* AuthStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 115 /* AuthStore.swift */; };
 		016 /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 116 /* LoginView.swift */; };
 		017 /* StockDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 117 /* StockDetailView.swift */; };
+		018 /* WatchlistFolder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 118 /* WatchlistFolder.swift */; };
+		019 /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 119 /* OnboardingView.swift */; };
+		020 /* WatchlistFolderManagementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 120 /* WatchlistFolderManagementView.swift */; };
+		021 /* BacktestingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 121 /* BacktestingView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -45,6 +49,10 @@
 		115 /* AuthStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthStore.swift; sourceTree = "<group>"; };
 		116 /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		117 /* StockDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StockDetailView.swift; sourceTree = "<group>"; };
+		118 /* WatchlistFolder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistFolder.swift; sourceTree = "<group>"; };
+		119 /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		120 /* WatchlistFolderManagementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchlistFolderManagementView.swift; sourceTree = "<group>"; };
+		121 /* BacktestingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BacktestingView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -92,6 +100,7 @@
 			children = (
 				104 /* Signal.swift */,
 				105 /* UserTrade.swift */,
+				118 /* WatchlistFolder.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -107,6 +116,9 @@
 				112 /* EducationView.swift */,
 				116 /* LoginView.swift */,
 				117 /* StockDetailView.swift */,
+				119 /* OnboardingView.swift */,
+				120 /* WatchlistFolderManagementView.swift */,
+				121 /* BacktestingView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -203,6 +215,7 @@
 				002 /* ContentView.swift in Sources */,
 				004 /* Signal.swift in Sources */,
 				005 /* UserTrade.swift in Sources */,
+				018 /* WatchlistFolder.swift in Sources */,
 				006 /* SignalStore.swift in Sources */,
 				007 /* UserStore.swift in Sources */,
 				008 /* SignalCardView.swift in Sources */,
@@ -215,6 +228,9 @@
 				015 /* AuthStore.swift in Sources */,
 				016 /* LoginView.swift in Sources */,
 				017 /* StockDetailView.swift in Sources */,
+				019 /* OnboardingView.swift in Sources */,
+				020 /* WatchlistFolderManagementView.swift in Sources */,
+				021 /* BacktestingView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
