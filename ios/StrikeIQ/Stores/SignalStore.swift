@@ -1,61 +1,6 @@
 import Foundation
 import Combine
 
-// MARK: - Watchlist Folder Models
-struct WatchlistFolder: Codable, Identifiable {
-    let id: String
-    let userId: String
-    let name: String
-    let color: String?
-    let order: Int
-    let createdAt: Date
-    let updatedAt: Date
-    var itemCount: Int?
-}
-
-struct WatchlistFolderWithCount: Codable {
-    let id: String
-    let userId: String
-    let name: String
-    let color: String?
-    let order: Int
-    let createdAt: Date
-    let updatedAt: Date
-    let itemCount: Int
-
-    var asFolder: WatchlistFolder {
-        WatchlistFolder(
-            id: id,
-            userId: userId,
-            name: name,
-            color: color,
-            order: order,
-            createdAt: createdAt,
-            updatedAt: updatedAt,
-            itemCount: itemCount
-        )
-    }
-}
-
-struct WatchlistFolderResponse: Codable {
-    let folders: [WatchlistFolderWithCount]
-}
-
-struct WatchlistFolderCreateResponse: Codable {
-    let message: String
-    let folder: WatchlistFolderWithCount
-}
-
-struct WatchlistFolderUpdateResponse: Codable {
-    let message: String
-    let folder: WatchlistFolderWithCount
-}
-
-struct FolderOrder: Codable {
-    let id: String
-    let order: Int
-}
-
 // MARK: - Signal Store
 class SignalStore: ObservableObject {
     @Published var signals: [Signal] = []
